@@ -485,26 +485,36 @@ textarea {
   gap: 16px;
 }
 
-.btn-customer-redirect {
-  background: linear-gradient(135deg, #7C4012, #D97706);
-  color: #FFFFFF;
-  text-decoration: none;
-  padding: 10px 18px;
+a.btn-customer-redirect,
+a.btn-customer-redirect:visited,
+a.btn-customer-redirect:link {
+  background: linear-gradient(135deg, #7C4012, #D97706) !important;
+  color: #FFFFFF !important;
+  text-decoration: none !important;
+  padding: 10px 20px;
   border-radius: 12px;
   font-size: 13px;
   font-weight: 700;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(124, 64, 18, 0.2);
-  transition: all 0.2s ease;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(124, 64, 18, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
 }
 
-.btn-customer-redirect:hover {
-  background: linear-gradient(135deg, #5C2E0B, #8B4513);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(124, 64, 18, 0.3);
+a.btn-customer-redirect:hover {
+  background: linear-gradient(135deg, #5C2E0B, #B45309) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 64, 18, 0.35);
 }
+
+a.btn-customer-redirect:active {
+  transform: translateY(0);
+}
+
 
 .status-indicator {
 
