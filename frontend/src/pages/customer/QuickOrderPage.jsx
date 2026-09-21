@@ -34,25 +34,10 @@ export default function QuickOrderPage() {
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useState(() => {
-    try {
-      const saved = localStorage.getItem('checkout_cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [cart, setCart] = useState([]);
 
   const [customerName, setCustomerName] = useState('');
-  const [tableNumber, setTableNumber] = useState(() => {
-    return localStorage.getItem('checkout_table') || '';
-  });
-
-  // Keep localStorage continuously updated whenever cart state mutates
-  const saveCartToStorage = (newCart) => {
-    setCart(newCart);
-    localStorage.setItem('checkout_cart', JSON.stringify(newCart));
-  };
+  const [tableNumber, setTableNumber] = useState('');
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [variantProduct, setVariantProduct] = useState(null);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
@@ -102,11 +87,11 @@ export default function QuickOrderPage() {
     if (tempType === 'both') {
       setVariantProduct(product);
     } else if (tempType === 'hot_only') {
-      addToCartWithVariant(product, 'Panas', product.hot_name || null);
+      addToCartWithVariant(product, 'Panas', product.hot_name || null, product.hot_price, product.hot_image || product.image);
     } else if (tempType === 'ice_only') {
-      addToCartWithVariant(product, 'Dingin', product.ice_name || null);
+      addToCartWithVariant(product, 'Dingin', product.ice_name || null, product.ice_price, product.ice_image || product.image);
     } else {
-      addToCartWithVariant(product, null, null);
+      addToCartWithVariant(product, null, null, product.price, product.image);
     }
   };
 
@@ -120,15 +105,14 @@ export default function QuickOrderPage() {
         (item) => item.product_id === product.id && item.variant_type === variantType
       );
 
-      let newCart;
       if (existing) {
-        newCart = prevCart.map((item) =>
+        return prevCart.map((item) =>
           item.product_id === product.id && item.variant_type === variantType
             ? { ...item, quantity: item.quantity + 1, image: finalImage || item.image }
             : item
         );
       } else {
-        newCart = [
+        return [
           ...prevCart,
           {
             product_id: product.id,
@@ -140,14 +124,12 @@ export default function QuickOrderPage() {
           }
         ];
       }
-      localStorage.setItem('checkout_cart', JSON.stringify(newCart));
-      return newCart;
     });
   };
 
   const updateCartQuantity = (productId, variantType, delta) => {
     setCart((prevCart) => {
-      const newCart = prevCart
+      return prevCart
         .map((item) => {
           if (item.product_id === productId && item.variant_type === variantType) {
             const newQty = item.quantity + delta;
@@ -156,9 +138,6 @@ export default function QuickOrderPage() {
           return item;
         })
         .filter(Boolean);
-
-      localStorage.setItem('checkout_cart', JSON.stringify(newCart));
-      return newCart;
     });
   };
 
@@ -218,7 +197,7 @@ export default function QuickOrderPage() {
           zIndex: 10
         }}
       >
-        <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <div className="quickorder-container" style={{ margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
             <div style={{ width: '36px', height: '36px', minWidth: '36px', background: 'linear-gradient(135deg, #7C4012, #D97706)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
               <Coffee size={18} />
@@ -281,7 +260,7 @@ export default function QuickOrderPage() {
         </div>
       </header>
 
-      <main style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
+      <main className="quickorder-container" style={{ margin: '0 auto', padding: '16px' }}>
         {/* Search & Filter Categories */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', background: '#FFFFFF', border: '1px solid #E8DFD5', borderRadius: '12px', padding: '8px 12px', marginBottom: '12px' }}>
@@ -349,7 +328,7 @@ export default function QuickOrderPage() {
         )}
 
         {/* Product Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+        <div className="quickorder-products-grid" style={{ display: 'grid', gap: '14px' }}>
           {filteredProducts.map((prod) => (
             <div
               key={prod.id}
@@ -358,7 +337,7 @@ export default function QuickOrderPage() {
                 background: '#FFFFFF',
                 border: '1px solid #E8DFD5',
                 borderRadius: '14px',
-                padding: '10px',
+                padding: '12px',
                 display: 'flex',
                 flexDirection: 'column',
                 cursor: prod.is_available ? 'pointer' : 'not-allowed',
@@ -366,22 +345,22 @@ export default function QuickOrderPage() {
               }}
             >
               {prod.image ? (
-                <img src={prod.image} alt={prod.name} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '10px', marginBottom: '8px' }} />
+                <img src={prod.image} alt={prod.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px', marginBottom: '8px' }} />
               ) : (
-                <div style={{ width: '100%', height: '110px', background: '#F4ECE1', borderRadius: '10px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
+                <div style={{ width: '100%', height: '140px', background: '#F4ECE1', borderRadius: '10px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
                   <Coffee size={28} />
                 </div>
               )}
 
-              <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#2D1A10', margin: '0 0 2px 0' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#2D1A10', margin: '0 0 2px 0' }}>
                 {prod.name}
               </h3>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '6px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#7C4012' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
                   Rp {Number(prod.price).toLocaleString('id-ID')}
                 </span>
-                <button type="button" style={{ background: '#7C4012', color: '#FFF', border: 'none', width: '26px', height: '26px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                  <Plus size={14} />
+                <button type="button" style={{ background: '#7C4012', color: '#FFF', border: 'none', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <Plus size={15} />
                 </button>
               </div>
             </div>

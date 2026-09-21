@@ -1182,3 +1182,84 @@ a.btn-customer-redirect:active {
     color: #7C4012 !important;
   }
 }
+
+/* Web Landing Page Responsive Styles */
+@media (max-width: 768px) {
+  .web-desktop-nav {
+    display: none !important;
+  }
+
+  .web-mobile-toggle {
+    display: flex !important;
+  }
+
+  .web-products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .web-feature-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .web-products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+@keyframes slideFromLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   QUICK ORDER RESPONSIVE LAYOUT (Mobile, Laptop, Desktop)
+   ============================================================ */
+.quickorder-container {
+  width: 100%;
+  margin: 0 auto;
+  transition: max-width 0.3s ease;
+}
+
+/* Mobile Screen (< 640px) */
+@media (max-width: 639px) {
+  .quickorder-container {
+    max-width: 100% !important;
+  }
+  .quickorder-products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+}
+
+/* Laptop Screen (640px - 1023px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .quickorder-container {
+    max-width: 840px !important;
+  }
+  .quickorder-products-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+  }
+}
+
+/* Desktop Screen (>= 1024px) */
+@media (min-width: 1024px) {
+  .quickorder-container {
+    max-width: 1100px !important;
+  }
+  .quickorder-products-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 20px !important;
+  }
+}
+
