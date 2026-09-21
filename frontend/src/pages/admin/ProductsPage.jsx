@@ -14,6 +14,7 @@ export default function ProductsPage() {
     name: '',
     description: '',
     price: '',
+    temperature_type: 'both',
     is_available: true
   });
   const [imageFile, setImageFile] = useState(null);
@@ -24,6 +25,7 @@ export default function ProductsPage() {
     name: '',
     description: '',
     price: '',
+    temperature_type: 'both',
     is_available: true
   });
   const [editImageFile, setEditImageFile] = useState(null);
@@ -47,8 +49,45 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
-    fetchProductsAndCategories();
-  }, []);
+    const handlePaste = (e) => {
+      if (!showAddModal && !editingProduct) return;
+
+      const items = e.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.type.indexOf('image') !== -1) {
+            const blob = item.getAsFile();
+            if (blob) {
+              const file = new File([blob], `pasted_image_${Date.now()}.png`, { type: blob.type });
+              if (showAddModal) {
+                setImageFile(file);
+                setImagePreview(URL.createObjectURL(file));
+              } else if (editingProduct) {
+                setEditImageFile(file);
+                setEditImagePreview(URL.createObjectURL(file));
+              }
+            }
+            return;
+          }
+        }
+      }
+
+      const pastedText = e.clipboardData?.getData('text');
+      if (pastedText && (pastedText.startsWith('http://') || pastedText.startsWith('https://') || pastedText.startsWith('data:image/'))) {
+        if (showAddModal) {
+          setImagePreview(pastedText);
+          setImageFile(pastedText);
+        } else if (editingProduct) {
+          setEditImagePreview(pastedText);
+          setEditImageFile(pastedText);
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [showAddModal, editingProduct]);
 
   const handleChange = (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -84,6 +123,7 @@ export default function ProductsPage() {
       payload.append('name', formData.name);
       payload.append('price', formData.price);
       payload.append('description', formData.description || '');
+      payload.append('temperature_type', formData.temperature_type || 'both');
       payload.append('is_available', formData.is_available ? 1 : 0);
       if (imageFile) {
         payload.append('image', imageFile);
@@ -91,7 +131,7 @@ export default function ProductsPage() {
 
       await productService.create(payload);
       setShowAddModal(false);
-      setFormData({ category_id: categories[0]?.id || '', name: '', description: '', price: '', is_available: true });
+      setFormData({ category_id: categories[0]?.id || '', name: '', description: '', price: '', temperature_type: 'both', is_available: true });
       setImageFile(null);
       setImagePreview(null);
       fetchProductsAndCategories();
@@ -107,6 +147,7 @@ export default function ProductsPage() {
       name: prod.name,
       description: prod.description || '',
       price: prod.price,
+      temperature_type: prod.temperature_type || 'both',
       is_available: prod.is_available
     });
     setEditImageFile(null);
@@ -122,6 +163,7 @@ export default function ProductsPage() {
       payload.append('name', editFormData.name);
       payload.append('price', editFormData.price);
       payload.append('description', editFormData.description || '');
+      payload.append('temperature_type', editFormData.temperature_type || 'both');
       payload.append('is_available', editFormData.is_available ? 1 : 0);
       if (editImageFile) {
         payload.append('image', editImageFile);
@@ -193,21 +235,34 @@ export default function ProductsPage() {
               </div>
 
               <div className="form-group">
+                <label>Pilihan Varian Suhu (Panas / Dingin)</label>
+                <select name="temperature_type" value={formData.temperature_type} onChange={handleChange} className="input-wrapper">
+                  <option value="both">Panas & Dingin (Customer Bisa Pilih)</option>
+                  <option value="hot_only">Hanya Panas (Hot Only)</option>
+                  <option value="ice_only">Hanya Dingin / Es (Ice Only)</option>
+                  <option value="none">Tidak Ada Varian (Makanan / Snack / General)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label>Harga (Rp)</label>
                 <input type="number" name="price" placeholder="15000" value={formData.price} onChange={handleChange} required />
               </div>
 
               <div className="form-group">
-                <label>Upload Foto / Gambar Produk</label>
+                <label>Foto Produk (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <label htmlFor="upload-add-image" style={{ background: '#F4ECE1', border: '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
-                    <Upload size={16} /> Pilih File Foto
+                    <Upload size={16} /> Pilih File / Paste Gambar
                   </label>
                   <input id="upload-add-image" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
                   {imagePreview && (
-                    <img src={imagePreview} alt="Preview" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #E8DFD5' }} />
+                    <img src={imagePreview} alt="Preview" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
                   )}
                 </div>
+                <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '4px', display: 'block' }}>
+                  💡 Tips: Anda dapat langsung menekan <strong>Ctrl + V (Paste)</strong> gambar dari Clipboard.
+                </span>
               </div>
 
               <div className="form-group">
@@ -244,21 +299,34 @@ export default function ProductsPage() {
               </div>
 
               <div className="form-group">
+                <label>Pilihan Varian Suhu (Panas / Dingin)</label>
+                <select name="temperature_type" value={editFormData.temperature_type} onChange={handleEditChange} className="input-wrapper">
+                  <option value="both">Panas & Dingin (Customer Bisa Pilih)</option>
+                  <option value="hot_only">Hanya Panas (Hot Only)</option>
+                  <option value="ice_only">Hanya Dingin / Es (Ice Only)</option>
+                  <option value="none">Tidak Ada Varian (Makanan / Snack / General)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label>Harga (Rp)</label>
                 <input type="number" name="price" value={editFormData.price} onChange={handleEditChange} required />
               </div>
 
               <div className="form-group">
-                <label>Upload Foto / Gambar Produk Baru</label>
+                <label>Foto Produk Baru (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <label htmlFor="upload-edit-image" style={{ background: '#F4ECE1', border: '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
-                    <Upload size={16} /> Ganti File Foto
+                    <Upload size={16} /> Ganti File / Paste Gambar
                   </label>
                   <input id="upload-edit-image" type="file" accept="image/*" onChange={handleEditFileChange} style={{ display: 'none' }} />
                   {editImagePreview && (
-                    <img src={editImagePreview} alt="Preview" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #E8DFD5' }} />
+                    <img src={editImagePreview} alt="Preview" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
                   )}
                 </div>
+                <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '4px', display: 'block' }}>
+                  💡 Tips: Anda dapat langsung menekan <strong>Ctrl + V (Paste)</strong> gambar dari Clipboard.
+                </span>
               </div>
 
               <div className="form-group">
@@ -293,6 +361,7 @@ export default function ProductsPage() {
             <tr>
               <th>Foto & Nama Menu</th>
               <th>Kategori</th>
+              <th>Suhu / Varian</th>
               <th>Harga</th>
               <th>Status Stok</th>
               <th>Aksi</th>
@@ -319,6 +388,14 @@ export default function ProductsPage() {
                     </div>
                   </td>
                   <td><span className="table-tag">{prod.category?.name || '-'}</span></td>
+                  <td>
+                    <span className="table-tag">
+                      {prod.temperature_type === 'both' && '☕ Panas / 🧊 Dingin'}
+                      {prod.temperature_type === 'hot_only' && '☕ Hanya Panas'}
+                      {prod.temperature_type === 'ice_only' && '🧊 Hanya Dingin'}
+                      {(!prod.temperature_type || prod.temperature_type === 'none') && 'Makanan / General'}
+                    </span>
+                  </td>
                   <td className="font-semibold">Rp {Number(prod.price).toLocaleString('id-ID')}</td>
                   <td>
                     <button
@@ -339,7 +416,7 @@ export default function ProductsPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center py-6 text-muted">
+                <td colSpan="6" className="text-center py-6 text-muted">
                   <div className="empty-state">
                     <Inbox size={32} />
                     <p>Belum ada produk di database. Klik tombol "Tambah Produk".</p>

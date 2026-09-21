@@ -61,6 +61,7 @@ CREATE TABLE `tb_products` (
   `price` DECIMAL(12, 2) NOT NULL,
   `image` VARCHAR(255) NULL,
   `is_available` TINYINT(1) DEFAULT 1,
+  `temperature_type` ENUM('both', 'hot_only', 'ice_only', 'none') DEFAULT 'both',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `tb_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -95,6 +96,7 @@ CREATE TABLE `tb_order_items` (
   `order_id` INT UNSIGNED NOT NULL,
   `product_id` INT UNSIGNED NULL,
   `product_name` VARCHAR(150) NOT NULL,
+  `variant_type` VARCHAR(50) NULL,
   `quantity` INT UNSIGNED NOT NULL DEFAULT 1,
   `price` DECIMAL(12, 2) NOT NULL,
   `subtotal` DECIMAL(12, 2) NOT NULL,

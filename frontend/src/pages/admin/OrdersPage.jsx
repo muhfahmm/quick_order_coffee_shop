@@ -61,7 +61,7 @@ export default function OrdersPage() {
                     {order.items && order.items.length > 0 && (
                       <ul className="text-xs text-slate-400 mt-2 space-y-1">
                         {order.items.map((it, idx) => (
-                          <li key={idx}>• {it.quantity}x {it.product_name}</li>
+                          <li key={idx}>• {it.quantity}x {it.product_name} {it.variant_type ? `(${it.variant_type})` : ''}</li>
                         ))}
                       </ul>
                     )}
@@ -101,7 +101,7 @@ export default function OrdersPage() {
                     {order.items && order.items.length > 0 && (
                       <ul className="text-xs text-slate-400 mt-2 space-y-1">
                         {order.items.map((it, idx) => (
-                          <li key={idx}>• {it.quantity}x {it.product_name}</li>
+                          <li key={idx}>• {it.quantity}x {it.product_name} {it.variant_type ? `(${it.variant_type})` : ''}</li>
                         ))}
                       </ul>
                     )}

@@ -49,6 +49,7 @@ class OrderController extends Controller
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'product_name' => $product->name,
+                    'variant_type' => $item['variant_type'] ?? null,
                     'quantity' => $item['quantity'],
                     'price' => $product->price,
                     'subtotal' => $subtotal

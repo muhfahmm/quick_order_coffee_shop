@@ -27,7 +27,8 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable',
-            'is_available' => 'boolean'
+            'is_available' => 'boolean',
+            'temperature_type' => 'nullable|in:both,hot_only,ice_only,none'
         ]);
 
         $imagePath = null;
@@ -44,7 +45,8 @@ class ProductController extends Controller
             'description' => $request->description,
             'price' => $request->price,
             'image' => $imagePath,
-            'is_available' => $request->is_available ?? true
+            'is_available' => $request->is_available ?? true,
+            'temperature_type' => $request->temperature_type ?? 'both'
         ]);
 
         return response()->json([
@@ -64,10 +66,11 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'sometimes|required|numeric|min:0',
             'image' => 'nullable',
-            'is_available' => 'boolean'
+            'is_available' => 'boolean',
+            'temperature_type' => 'nullable|in:both,hot_only,ice_only,none'
         ]);
 
-        $data = $request->only(['category_id', 'name', 'description', 'price', 'is_available']);
+        $data = $request->only(['category_id', 'name', 'description', 'price', 'is_available', 'temperature_type']);
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');

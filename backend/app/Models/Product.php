@@ -15,6 +15,7 @@ class Product extends Model
         'price',
         'image',
         'is_available',
+        'temperature_type',
     ];
 
     protected $casts = [

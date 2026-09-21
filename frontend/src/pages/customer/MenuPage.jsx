@@ -11,6 +11,7 @@ export default function MenuPage() {
   const [customerName, setCustomerName] = useState('');
   const [tableNumber, setTableNumber] = useState('');
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
+  const [variantProduct, setVariantProduct] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
 
@@ -41,13 +42,31 @@ export default function MenuPage() {
     fetchMenuData();
   }, []);
 
-  const addToCart = (product) => {
+  const handleProductClick = (product) => {
+    if (!product.is_available) return;
+
+    const tempType = product.temperature_type || 'both';
+
+    if (tempType === 'both') {
+      setVariantProduct(product);
+    } else if (tempType === 'hot_only') {
+      addToCartWithVariant(product, 'Panas');
+    } else if (tempType === 'ice_only') {
+      addToCartWithVariant(product, 'Dingin');
+    } else {
+      addToCartWithVariant(product, null);
+    }
+  };
+
+  const addToCartWithVariant = (product, variantType) => {
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.product_id === product.id);
+      const existing = prevCart.find(
+        (item) => item.product_id === product.id && item.variant_type === variantType
+      );
 
       if (existing) {
         return prevCart.map((item) =>
-          item.product_id === product.id
+          item.product_id === product.id && item.variant_type === variantType
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -58,6 +77,7 @@ export default function MenuPage() {
         {
           product_id: product.id,
           name: product.name,
+          variant_type: variantType,
           price: Number(product.price),
           quantity: 1
         }
@@ -89,6 +109,7 @@ export default function MenuPage() {
         table_number: tableNumber,
         items: cart.map((it) => ({
           product_id: it.product_id,
+          variant_type: it.variant_type || null,
           quantity: it.quantity
         }))
       });
@@ -361,7 +382,7 @@ export default function MenuPage() {
             <div
               key={prod.id}
               className="customer-product-card"
-              onClick={() => prod.is_available && addToCart(prod)}
+              onClick={() => handleProductClick(prod)}
               style={{
                 background: '#FFFFFF',
                 border: '1px solid #E8DFD5',
@@ -500,6 +521,16 @@ export default function MenuPage() {
                 >
                   Total: Rp {totalAmount.toLocaleString('id-ID')}
                 </span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#7A695C',
+                    display: 'block',
+                    marginTop: '2px'
+                  }}
+                >
+                  {cart.map((c) => `${c.name} (${c.variant_type || 'Std'}) x${c.quantity}`).join(', ')}
+                </span>
               </div>
             </div>
 
@@ -547,6 +578,133 @@ export default function MenuPage() {
           </div>
         </div>
       )}
+
+      {variantProduct && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(45, 26, 16, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+            backdropFilter: 'blur(3px)'
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '24px',
+              maxWidth: '380px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+              textAlign: 'center'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '16px'
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: '17px',
+                  fontWeight: 800,
+                  color: '#2D1A10',
+                  margin: 0
+                }}
+              >
+                Pilih Varian Suhu
+              </h3>
+              <button
+                onClick={() => setVariantProduct(null)}
+                style={{
+                  background: '#F4ECE1',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#7C4012'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '14px', fontWeight: 700, color: '#7C4012', marginBottom: '4px' }}>
+              {variantProduct.name}
+            </p>
+            <p style={{ fontSize: '13px', color: '#7A695C', marginBottom: '20px' }}>
+              Pilih konsumsi yang Anda inginkan:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  addToCartWithVariant(variantProduct, 'Panas');
+                  setVariantProduct(null);
+                }}
+                style={{
+                  padding: '16px 12px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #E8DFD5',
+                  background: '#FFF8F0',
+                  color: '#9A3412',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>☕</span>
+                <span>Panas (Hot)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  addToCartWithVariant(variantProduct, 'Dingin');
+                  setVariantProduct(null);
+                }}
+                style={{
+                  padding: '16px 12px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #E8DFD5',
+                  background: '#F0F9FF',
+                  color: '#0369A1',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span style={{ fontSize: '24px' }}>🧊</span>
+                <span>Dingin (Ice)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isTableModalOpen && (
         <div
           style={{
