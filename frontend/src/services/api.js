@@ -37,4 +37,18 @@ export const categoryService = {
   create: (data) => api.post('/categories', data)
 };
 
+export const tableService = {
+  getAll: () => api.get('/tables'),
+  create: (data) => api.post('/tables', data),
+  updateStatus: (id, status) => api.put(`/tables/${id}/status`, { status }),
+  delete: (id) => api.delete(`/tables/${id}`)
+};
+
+export const orderService = {
+  getAll: () => api.get('/orders'),
+  create: (data) => api.post('/orders', data),
+  updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status })
+};
+
 export default api;
+

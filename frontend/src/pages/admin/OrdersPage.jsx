@@ -1,11 +1,33 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Clock, CheckCircle2, AlertCircle, RefreshCw, ChevronRight, Inbox } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Clock, CheckCircle2, AlertCircle, RefreshCw, ChevronRight, Inbox } from 'lucide-react';
+import { orderService } from '../../services/api';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
 
-  const updateStatus = (orderId, newStatus) => {
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+  const fetchOrders = async () => {
+    try {
+      const res = await orderService.getAll();
+      setOrders(res.data.data || []);
+    } catch (err) {
+      console.error('Gagal mengambil data pesanan dari database:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 10000); // Polling otomatis tiap 10 detik untuk live updates
+    return () => clearInterval(interval);
+  }, []);
+
+  const updateStatus = async (orderId, newStatus) => {
+    try {
+      await orderService.updateStatus(orderId, newStatus);
+      fetchOrders();
+    } catch (err) {
+      console.error('Gagal memperbarui status pesanan:', err);
+      alert('Gagal memperbarui status pesanan');
+    }
   };
 
   return (
@@ -13,10 +35,10 @@ export default function OrdersPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Live Orders Board (Dapur & Kasir)</h1>
-          <p className="page-subtitle">Pantau dan perbarui status masakan pesanan customer secara real-time</p>
+          <p className="page-subtitle">Pantau dan perbarui status masakan pesanan customer secara real-time dari database MySQL (`tb_orders`)</p>
         </div>
-        <button className="btn-action-primary">
-          <RefreshCw size={16} /> Live Refresh
+        <button onClick={fetchOrders} className="btn-action-primary">
+          <RefreshCw size={16} /> Refresh Data
         </button>
       </div>
 
@@ -33,13 +55,20 @@ export default function OrdersPage() {
                 <div key={order.id} className="order-kanban-card">
                   <div className="card-top">
                     <span className="order-id">{order.order_code}</span>
-                    <span className="table-badge">{order.table_number}</span>
+                    <span className="table-badge">{order.table_number || 'General'}</span>
                   </div>
                   <div className="customer-info">
                     <strong>{order.customer_name}</strong>
+                    {order.items && order.items.length > 0 && (
+                      <ul className="text-xs text-slate-400 mt-2 space-y-1">
+                        {order.items.map((it, idx) => (
+                          <li key={idx}>• {it.quantity}x {it.product_name}</li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="card-bottom">
-                    <span className="order-total">Rp {order.total_amount}</span>
+                    <span className="order-total">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
                     <button onClick={() => updateStatus(order.id, 'processing')} className="btn-step-next">
                       Proses Ke Dapur <ChevronRight size={16} />
                     </button>
@@ -67,10 +96,20 @@ export default function OrdersPage() {
                 <div key={order.id} className="order-kanban-card">
                   <div className="card-top">
                     <span className="order-id">{order.order_code}</span>
-                    <span className="table-badge">{order.table_number}</span>
+                    <span className="table-badge">{order.table_number || 'General'}</span>
+                  </div>
+                  <div className="customer-info">
+                    <strong>{order.customer_name}</strong>
+                    {order.items && order.items.length > 0 && (
+                      <ul className="text-xs text-slate-400 mt-2 space-y-1">
+                        {order.items.map((it, idx) => (
+                          <li key={idx}>• {it.quantity}x {it.product_name}</li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="card-bottom">
-                    <span className="order-total">Rp {order.total_amount}</span>
+                    <span className="order-total">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
                     <button onClick={() => updateStatus(order.id, 'completed')} className="btn-step-complete">
                       Selesai & Antar <CheckCircle2 size={16} />
                     </button>
@@ -89,7 +128,7 @@ export default function OrdersPage() {
         {/* Kolom Completed */}
         <div className="kanban-column">
           <div className="column-header status-completed">
-            <h3><CheckCircle2 size={18} /> Selesai Terdiskon / Diantar</h3>
+            <h3><CheckCircle2 size={18} /> Selesai / Diantar</h3>
             <span className="count-badge">{orders.filter(o => o.status === 'completed').length}</span>
           </div>
           <div className="column-content">
@@ -98,10 +137,14 @@ export default function OrdersPage() {
                 <div key={order.id} className="order-kanban-card completed-card">
                   <div className="card-top">
                     <span className="order-id">{order.order_code}</span>
-                    <span className="table-badge">{order.table_number}</span>
+                    <span className="table-badge">{order.table_number || 'General'}</span>
+                  </div>
+                  <div className="customer-info">
+                    <strong>{order.customer_name}</strong>
                   </div>
                   <div className="card-bottom">
                     <span className="status-done-tag">Selesai</span>
+                    <span className="order-total font-semibold">Rp {Number(order.total_amount).toLocaleString('id-ID')}</span>
                   </div>
                 </div>
               ))

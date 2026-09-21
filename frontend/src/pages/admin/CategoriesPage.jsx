@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit3, Trash2, Tag, Inbox } from 'lucide-react';
+import { Plus, Tag, Inbox } from 'lucide-react';
 import { categoryService } from '../../services/api';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
 
   const fetchCategories = async () => {
-    setIsLoading(true);
     try {
       const res = await categoryService.getAll();
       setCategories(res.data.data || []);
     } catch (err) {
-      console.error('Gagal mengambil kategori:', err);
-    } finally {
-      setIsLoading(false);
+      console.error('Gagal mengambil kategori dari database:', err);
     }
   };
 
@@ -31,7 +27,9 @@ export default function CategoriesPage() {
       setName('');
       fetchCategories();
     } catch (err) {
-      alert('Gagal menambah kategori ke database');
+      console.error('Error adding category:', err);
+      const serverMessage = err.response?.data?.message || err.message || 'Gagal menambah kategori ke database';
+      alert(serverMessage);
     }
   };
 
@@ -79,9 +77,7 @@ export default function CategoriesPage() {
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
-                <tr><td colSpan="3" className="text-center py-4">Memuat data...</td></tr>
-              ) : categories.length > 0 ? (
+              {categories.length > 0 ? (
                 categories.map((cat) => (
                   <tr key={cat.id}>
                     <td className="font-semibold">{cat.name}</td>

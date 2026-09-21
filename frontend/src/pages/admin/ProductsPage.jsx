@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit3, Trash2, Coffee, Check, X, Inbox } from 'lucide-react';
+import { Plus, Search, Trash2, Coffee, Check, X, Inbox } from 'lucide-react';
 import { productService, categoryService } from '../../services/api';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -17,21 +17,19 @@ export default function ProductsPage() {
   });
 
   const fetchProductsAndCategories = async () => {
-    setIsLoading(true);
     try {
       const [resProd, resCat] = await Promise.all([
         productService.getAll(),
         categoryService.getAll()
       ]);
       setProducts(resProd.data.data || []);
-      setCategories(resCat.data.data || []);
-      if (resCat.data.data?.length > 0 && !formData.category_id) {
-        setFormData(prev => ({ ...prev, category_id: resCat.data.data[0].id }));
+      const cats = resCat.data.data || [];
+      setCategories(cats);
+      if (cats.length > 0 && !formData.category_id) {
+        setFormData(prev => ({ ...prev, category_id: cats[0].id }));
       }
     } catch (error) {
       console.error('Gagal mengambil data dari database MySQL:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -75,6 +73,10 @@ export default function ProductsPage() {
       alert('Gagal memperbarui status ketersediaan');
     }
   };
+
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="products-page">
@@ -131,7 +133,12 @@ export default function ProductsPage() {
         <div className="card-header">
           <div className="search-bar">
             <Search size={18} className="search-icon" />
-            <input type="text" placeholder="Cari nama menu..." />
+            <input
+              type="text"
+              placeholder="Cari nama menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
 
@@ -146,10 +153,8 @@ export default function ProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
-              <tr><td colSpan="5" className="text-center py-6">Memuat data dari database...</td></tr>
-            ) : products.length > 0 ? (
-              products.map((prod) => (
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((prod) => (
                 <tr key={prod.id}>
                   <td className="font-semibold">
                     <div className="product-title-cell">

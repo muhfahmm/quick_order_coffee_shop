@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\TableController;
+use App\Http\Controllers\Api\OrderController;
 
 // Public Endpoints
 Route::post('/auth/register', [AuthController::class, 'register']);
@@ -11,6 +13,9 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/tables', [TableController::class, 'index']);
+Route::get('/orders', [OrderController::class, 'index']);
+Route::post('/orders', [OrderController::class, 'store']);
 
 // Protected Endpoints (Perlu Token Auth)
 Route::middleware('auth:sanctum')->group(function () {
@@ -21,4 +26,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     
     Route::post('/categories', [CategoryController::class, 'store']);
+
+    Route::post('/tables', [TableController::class, 'store']);
+    Route::put('/tables/{id}/status', [TableController::class, 'updateStatus']);
+    Route::delete('/tables/{id}', [TableController::class, 'destroy']);
+
+    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 });
+

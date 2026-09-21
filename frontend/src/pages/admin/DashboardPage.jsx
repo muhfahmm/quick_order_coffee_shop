@@ -1,26 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TrendingUp,
   ShoppingBag,
   Clock,
   DollarSign,
   Coffee,
-  CheckCircle2,
-  AlertCircle,
   ArrowUpRight,
   Inbox
 } from 'lucide-react';
+import { orderService, tableService } from '../../services/api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
     todayRevenue: 'Rp 0',
     totalOrders: '0 Pesanan',
     occupiedTables: '0 / 0 Meja',
-    avgTime: '0 Mins'
+    avgTime: '12 Mins'
   });
 
   const [recentOrders, setRecentOrders] = useState([]);
   const [tables, setTables] = useState([]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [resOrders, resTables] = await Promise.all([
+        orderService.getAll(),
+        tableService.getAll()
+      ]);
+
+      const ordersData = resOrders.data.data || [];
+      const tablesData = resTables.data.data || [];
+
+      setRecentOrders(ordersData.slice(0, 5));
+      setTables(tablesData);
+
+      const totalRev = ordersData.reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
+      const occupiedCount = tablesData.filter(t => t.status === 'occupied').length;
+
+      setStats({
+        todayRevenue: `Rp ${totalRev.toLocaleString('id-ID')}`,
+        totalOrders: `${ordersData.length} Pesanan`,
+        occupiedTables: `${occupiedCount} / ${tablesData.length} Meja`,
+        avgTime: '12 Mins'
+      });
+    } catch (err) {
+      console.error('Gagal mengambil data dashboard:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="dashboard-page">
@@ -28,10 +57,10 @@ export default function DashboardPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Dashboard Ikhtisar Resto</h1>
-          <p className="page-subtitle">Pantau aktivitas transaksi cepat dan statistik meja secara real-time</p>
+          <p className="page-subtitle">Pantau aktivitas transaksi cepat dan statistik meja secara real-time dari database MySQL</p>
         </div>
-        <button className="btn-action-primary">
-          <span>Unduh Laporan Hari Ini</span>
+        <button onClick={fetchDashboardData} className="btn-action-primary">
+          <span>Refresh Data Dashboard</span>
         </button>
       </div>
 
@@ -96,7 +125,6 @@ export default function DashboardPage() {
                   <th>No. Order</th>
                   <th>Meja</th>
                   <th>Nama Pemesan</th>
-                  <th>Detail Item</th>
                   <th>Total</th>
                   <th>Status</th>
                 </tr>
@@ -106,19 +134,18 @@ export default function DashboardPage() {
                   recentOrders.map((ord) => (
                     <tr key={ord.id}>
                       <td className="font-medium text-amber-500">{ord.order_code}</td>
-                      <td><span className="table-tag">{ord.table_number}</span></td>
+                      <td><span className="table-tag">{ord.table_number || 'General'}</span></td>
                       <td>{ord.customer_name}</td>
-                      <td className="text-muted">{ord.items}</td>
-                      <td className="font-semibold">Rp {ord.total_amount}</td>
-                      <td><span className={`status-pill ${ord.order_status}`}>{ord.order_status}</span></td>
+                      <td className="font-semibold">Rp {Number(ord.total_amount).toLocaleString('id-ID')}</td>
+                      <td><span className={`status-pill ${ord.status}`}>{ord.status}</span></td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="text-center py-6 text-muted">
+                    <td colSpan="5" className="text-center py-6 text-muted">
                       <div className="empty-state">
                         <Inbox size={32} />
-                        <p>Belum ada pesanan masuk</p>
+                        <p>Belum ada pesanan masuk di database</p>
                       </div>
                     </td>
                   </tr>
@@ -140,7 +167,7 @@ export default function DashboardPage() {
                   <div className="table-number-box">{tbl.table_number}</div>
                   <div className="table-info">
                     <span className="status-label">{tbl.status === 'occupied' ? 'Sedang Terisi' : 'Kosong'}</span>
-                    <span className="token-hint">QR Code Active</span>
+                    <span className="token-hint">QR: {tbl.qr_code_token}</span>
                   </div>
                   <span className={`badge-status ${tbl.status === 'occupied' ? 'active' : 'idle'}`}>
                     {tbl.status === 'occupied' ? 'Terisi' : 'Kosong'}

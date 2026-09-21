@@ -1,23 +1,47 @@
-import React, { useState } from 'react';
-import { QrCode, Plus, Printer, ExternalLink, Inbox } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2 } from 'lucide-react';
+import { tableService } from '../../services/api';
 
 export default function TablesPage() {
   const [tables, setTables] = useState([]);
   const [newTableName, setNewTableName] = useState('');
 
-  const handleAddTable = (e) => {
+  const fetchTables = async () => {
+    try {
+      const res = await tableService.getAll();
+      setTables(res.data.data || []);
+    } catch (err) {
+      console.error('Gagal mengambil data meja dari database:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchTables();
+  }, []);
+
+  const handleAddTable = async (e) => {
     e.preventDefault();
     if (!newTableName) return;
-    const newToken = `tbl-token-${Date.now()}`;
-    const newEntry = {
-      id: Date.now(),
-      table_number: newTableName,
-      qr_code_token: newToken,
-      status: 'available',
-      qrUrl: `http://localhost:5173/scan?table=${newToken}`
-    };
-    setTables([...tables, newEntry]);
-    setNewTableName('');
+    try {
+      await tableService.create({ table_number: newTableName });
+      setNewTableName('');
+      fetchTables();
+    } catch (err) {
+      console.error('Error adding table:', err);
+      alert(err.response?.data?.message || 'Gagal menyimpan data meja ke database');
+    }
+  };
+
+  const handleDeleteTable = async (id) => {
+    if (window.confirm('Hapus data meja ini dari database?')) {
+      try {
+        await tableService.delete(id);
+        fetchTables();
+      } catch (err) {
+        console.error('Error deleting table:', err);
+        alert('Gagal menghapus meja');
+      }
+    }
   };
 
   return (
@@ -25,7 +49,7 @@ export default function TablesPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Manajemen Meja & QR Code Scan</h1>
-          <p className="page-subtitle">Generasi QR Code Unik per meja untuk pemesanan langsung dari smartphone customer</p>
+          <p className="page-subtitle">Generasi QR Code Unik per meja tersimpan di database MySQL (`tb_tables`)</p>
         </div>
       </div>
 
@@ -47,7 +71,7 @@ export default function TablesPage() {
               />
             </div>
             <button type="submit" className="btn-primary-auth">
-              <QrCode size={18} /> Generate QR Code Meja
+              <QrCode size={18} /> Simpan & Generate QR Code
             </button>
           </form>
         </div>
@@ -55,38 +79,46 @@ export default function TablesPage() {
         {/* Daftar Kartu Meja & QR */}
         <div className="tables-cards-grid">
           {tables.length > 0 ? (
-            tables.map((tbl) => (
-              <div key={tbl.id} className="table-qr-card">
-                <div className="table-card-header">
-                  <span className="table-name">{tbl.table_number}</span>
-                  <span className={`status-pill ${tbl.status === 'occupied' ? 'processing' : 'completed'}`}>
-                    {tbl.status === 'occupied' ? 'Terisi' : 'Kosong'}
-                  </span>
-                </div>
+            tables.map((tbl) => {
+              const scanUrl = `${window.location.origin}/scan?table=${tbl.qr_code_token}`;
+              return (
+                <div key={tbl.id} className="table-qr-card">
+                  <div className="table-card-header">
+                    <span className="table-name">{tbl.table_number}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`status-pill ${tbl.status === 'occupied' ? 'processing' : 'completed'}`}>
+                        {tbl.status === 'occupied' ? 'Terisi' : 'Kosong'}
+                      </span>
+                      <button onClick={() => handleDeleteTable(tbl.id)} className="btn-icon danger p-1" title="Hapus Meja">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
 
-                <div className="qr-preview-box">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(tbl.qrUrl)}`}
-                    alt={`QR Code ${tbl.table_number}`}
-                    className="qr-image"
-                  />
-                  <span className="token-text">{tbl.qr_code_token}</span>
-                </div>
+                  <div className="qr-preview-box">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(scanUrl)}`}
+                      alt={`QR Code ${tbl.table_number}`}
+                      className="qr-image"
+                    />
+                    <span className="token-text">{tbl.qr_code_token}</span>
+                  </div>
 
-                <div className="qr-card-actions">
-                  <button className="btn-secondary" title="Cetak Stand Card Meja">
-                    <Printer size={16} /> Cetak
-                  </button>
-                  <a href={tbl.qrUrl} target="_blank" rel="noreferrer" className="btn-secondary" title="Simulasi Scan Customer">
-                    <ExternalLink size={16} /> Test Scan
-                  </a>
+                  <div className="qr-card-actions">
+                    <button className="btn-secondary" title="Cetak Stand Card Meja" onClick={() => window.print()}>
+                      <Printer size={16} /> Cetak
+                    </button>
+                    <a href={scanUrl} target="_blank" rel="noreferrer" className="btn-secondary" title="Simulasi Scan Customer">
+                      <ExternalLink size={16} /> Test Scan
+                    </a>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="empty-state-full col-span-3">
               <Inbox size={36} />
-              <p>Belum ada data meja. Silakan tambah meja baru di formulir sebelah kiri.</p>
+              <p>Belum ada data meja di database. Silakan tambah meja baru di formulir sebelah kiri.</p>
             </div>
           )}
         </div>
