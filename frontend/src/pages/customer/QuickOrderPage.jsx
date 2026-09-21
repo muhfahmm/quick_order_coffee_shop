@@ -34,7 +34,55 @@ export default function QuickOrderPage() {
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useState([]);
+  
+  // Cart state initialized from session/local storage (preserved during SPA navigation)
+  const [cart, setCart] = useState(() => {
+    try {
+      const isReload =
+        (window.performance &&
+          window.performance.getEntriesByType &&
+          window.performance.getEntriesByType('navigation')[0]?.type === 'reload') ||
+        window.performance?.navigation?.type === 1;
+
+      if (isReload) {
+        sessionStorage.removeItem('checkout_cart');
+        localStorage.removeItem('checkout_cart');
+        return [];
+      }
+
+      const saved = sessionStorage.getItem('checkout_cart') || localStorage.getItem('checkout_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sync cart changes to storage
+  useEffect(() => {
+    try {
+      if (cart.length > 0) {
+        sessionStorage.setItem('checkout_cart', JSON.stringify(cart));
+        localStorage.setItem('checkout_cart', JSON.stringify(cart));
+      } else {
+        sessionStorage.removeItem('checkout_cart');
+        localStorage.removeItem('checkout_cart');
+      }
+    } catch (err) {
+      console.error('Gagal menyimpan cart:', err);
+    }
+  }, [cart]);
+
+  // Clear cart when user reloads / refreshes page
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('checkout_cart');
+      localStorage.removeItem('checkout_cart');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const [customerName, setCustomerName] = useState('');
   const [tableNumber, setTableNumber] = useState('');
@@ -43,6 +91,41 @@ export default function QuickOrderPage() {
   const [isCartExpanded, setIsCartExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
+
+  // Real-time draggable bottom sheet state (Flutter-like modal bottom sheet gesture)
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartYRef = React.useRef(0);
+
+  const startDrag = (clientY) => {
+    dragStartYRef.current = clientY;
+    setIsDragging(true);
+  };
+
+  const moveDrag = (clientY, isExpanded) => {
+    if (!dragStartYRef.current) return;
+    const delta = clientY - dragStartYRef.current;
+    if (isExpanded) {
+      if (delta > 0) setDragY(delta);
+    } else {
+      if (delta < 0) setDragY(delta);
+    }
+  };
+
+  const endDrag = (isExpanded) => {
+    setIsDragging(false);
+    if (isExpanded) {
+      if (dragY > 60) {
+        setIsCartExpanded(false);
+      }
+    } else {
+      if (dragY < -40) {
+        setIsCartExpanded(true);
+      }
+    }
+    setDragY(0);
+    dragStartYRef.current = 0;
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -382,26 +465,48 @@ export default function QuickOrderPage() {
                 zIndex: 90,
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'flex-end'
+                justifyContent: 'flex-end',
+                transition: 'background-color 0.2s ease'
               }}
               onClick={() => setIsCartExpanded(false)}
             >
               <div
                 onClick={(e) => e.stopPropagation()}
+                onTouchStart={(e) => startDrag(e.touches[0].clientY)}
+                onTouchMove={(e) => moveDrag(e.touches[0].clientY, true)}
+                onTouchEnd={() => endDrag(true)}
+                onMouseDown={(e) => startDrag(e.clientY)}
+                onMouseMove={(e) => isDragging && moveDrag(e.clientY, true)}
+                onMouseUp={() => endDrag(true)}
                 style={{
                   background: '#FFFFFF',
                   borderTopLeftRadius: '24px',
                   borderTopRightRadius: '24px',
-                  padding: '20px',
+                  padding: '12px 20px 20px 20px',
                   maxWidth: '600px',
                   width: '100%',
                   margin: '0 auto',
                   boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
                   maxHeight: '70vh',
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  touchAction: 'none',
+                  transform: dragY > 0 ? `translateY(${dragY}px)` : 'translateY(0)',
+                  transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)'
                 }}
               >
+                {/* Drag Handle Indicator */}
+                <div 
+                  style={{ 
+                    width: '44px', 
+                    height: '5px', 
+                    background: '#D9C8B4', 
+                    borderRadius: '4px', 
+                    margin: '0 auto 12px auto',
+                    cursor: 'grab'
+                  }} 
+                />
+
                 {/* Header Drawer */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #E8DFD5' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -420,7 +525,7 @@ export default function QuickOrderPage() {
                 </div>
 
                 {/* Item List */}
-                <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '12px', touchAction: 'pan-y' }}>
                   {cart.map((item, idx) => (
                     <div
                       key={`${item.product_id}-${item.variant_type || 'default'}-${idx}`}
@@ -507,7 +612,40 @@ export default function QuickOrderPage() {
           )}
 
           {/* Sticky Bottom Bar */}
-          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1.5px solid #E8DFD5', padding: '14px 20px', boxShadow: '0 -8px 24px rgba(0,0,0,0.1)', zIndex: 100 }}>
+          <div 
+            onTouchStart={(e) => startDrag(e.touches[0].clientY)}
+            onTouchMove={(e) => moveDrag(e.touches[0].clientY, false)}
+            onTouchEnd={() => endDrag(false)}
+            onMouseDown={(e) => startDrag(e.clientY)}
+            onMouseMove={(e) => isDragging && moveDrag(e.clientY, false)}
+            onMouseUp={() => endDrag(false)}
+            style={{ 
+              position: 'fixed', 
+              bottom: 0, 
+              left: 0, 
+              right: 0, 
+              background: '#FFFFFF', 
+              borderTop: '1.5px solid #E8DFD5', 
+              padding: '10px 20px 14px 20px', 
+              boxShadow: '0 -8px 24px rgba(0,0,0,0.1)', 
+              zIndex: 100, 
+              touchAction: 'none',
+              transform: dragY < 0 ? `translateY(${dragY}px)` : 'translateY(0)',
+              transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)'
+            }}
+          >
+            {/* Drag Pill for Bottom Bar */}
+            <div 
+              style={{ 
+                width: '40px', 
+                height: '4px', 
+                background: '#D9C8B4', 
+                borderRadius: '4px', 
+                margin: '0 auto 8px auto',
+                cursor: 'grab'
+              }} 
+              onClick={() => setIsCartExpanded(!isCartExpanded)}
+            />
             <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
               <div
                 onClick={() => setIsCartExpanded(!isCartExpanded)}

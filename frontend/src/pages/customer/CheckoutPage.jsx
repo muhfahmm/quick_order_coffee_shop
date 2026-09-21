@@ -6,15 +6,39 @@ import { orderService, tableService } from '../../services/api';
 export default function CheckoutPage() {
   const navigate = useNavigate();
 
-  // Get saved checkout state from localStorage
+  // Get saved checkout state from storage (cleared on page reload)
   const [cart, setCart] = useState(() => {
     try {
-      const saved = localStorage.getItem('checkout_cart');
+      const isReload =
+        (window.performance &&
+          window.performance.getEntriesByType &&
+          window.performance.getEntriesByType('navigation')[0]?.type === 'reload') ||
+        window.performance?.navigation?.type === 1;
+
+      if (isReload) {
+        sessionStorage.removeItem('checkout_cart');
+        localStorage.removeItem('checkout_cart');
+        return [];
+      }
+
+      const saved = sessionStorage.getItem('checkout_cart') || localStorage.getItem('checkout_cart');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
+
+  // Clear cart when user reloads / refreshes page
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('checkout_cart');
+      localStorage.removeItem('checkout_cart');
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const updateCartQuantity = (productId, variantType, delta) => {
     setCart((prevCart) => {
@@ -28,6 +52,7 @@ export default function CheckoutPage() {
         })
         .filter(Boolean);
 
+      sessionStorage.setItem('checkout_cart', JSON.stringify(updated));
       localStorage.setItem('checkout_cart', JSON.stringify(updated));
       return updated;
     });
