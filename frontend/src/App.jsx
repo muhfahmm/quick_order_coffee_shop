@@ -7,6 +7,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 
 import WebLandingPage from './pages/customer/WebLandingPage';
 import QuickOrderPage from './pages/customer/QuickOrderPage';
+import CheckoutPage from './pages/customer/CheckoutPage';
 
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/" element={<WebLandingPage />} />
           <Route path="/web" element={<WebLandingPage />} />
           <Route path="/quick-order" element={<QuickOrderPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/scan" element={<QuickOrderPage />} />
           <Route path="/menu" element={<QuickOrderPage />} />
 

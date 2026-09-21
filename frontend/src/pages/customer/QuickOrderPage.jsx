@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Coffee, ShoppingBag, Plus, Check, Send, MapPin, X, Snowflake, AlertTriangle, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Coffee, ShoppingBag, Plus, Check, Send, MapPin, X, Snowflake, AlertTriangle, Search, ChevronUp, ChevronDown, Trash2, ArrowRight } from 'lucide-react';
 import { productService, categoryService, orderService, tableService } from '../../services/api';
 
 export default function QuickOrderPage() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState(() => {
     try {
       const cached = localStorage.getItem('cached_categories');
@@ -32,11 +34,34 @@ export default function QuickOrderPage() {
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('checkout_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [customerName, setCustomerName] = useState('');
-  const [tableNumber, setTableNumber] = useState('');
+  const [tableNumber, setTableNumber] = useState(() => {
+    return localStorage.getItem('checkout_table') || '';
+  });
+
+  // Sync cart to localStorage whenever cart changes
+  useEffect(() => {
+    localStorage.setItem('checkout_cart', JSON.stringify(cart));
+  }, [cart]);
+
+  // Sync tableNumber to localStorage whenever tableNumber changes
+  useEffect(() => {
+    if (tableNumber) {
+      localStorage.setItem('checkout_table', tableNumber);
+    }
+  }, [tableNumber]);
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [variantProduct, setVariantProduct] = useState(null);
+  const [isCartExpanded, setIsCartExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
 
@@ -91,9 +116,10 @@ export default function QuickOrderPage() {
     }
   };
 
-  const addToCartWithVariant = (product, variantType, customName, customPrice) => {
+  const addToCartWithVariant = (product, variantType, customName, customPrice, customImage) => {
     const finalName = customName || (variantType ? `${product.name} (${variantType})` : product.name);
     const finalPrice = customPrice != null && customPrice !== '' ? Number(customPrice) : Number(product.price);
+    const finalImage = customImage || product.image || (variantType === 'Panas' ? product.hot_image : variantType === 'Dingin' ? product.ice_image : null);
 
     setCart((prevCart) => {
       const existing = prevCart.find(
@@ -103,7 +129,7 @@ export default function QuickOrderPage() {
       if (existing) {
         return prevCart.map((item) =>
           item.product_id === product.id && item.variant_type === variantType
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + 1, image: finalImage || item.image }
             : item
         );
       }
@@ -115,9 +141,24 @@ export default function QuickOrderPage() {
           name: finalName,
           variant_type: variantType,
           price: finalPrice,
+          image: finalImage,
           quantity: 1
         }
       ];
+    });
+  };
+
+  const updateCartQuantity = (productId, variantType, delta) => {
+    setCart((prevCart) => {
+      return prevCart
+        .map((item) => {
+          if (item.product_id === productId && item.variant_type === variantType) {
+            const newQty = item.quantity + delta;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          }
+          return item;
+        })
+        .filter(Boolean);
     });
   };
 
@@ -323,39 +364,206 @@ export default function QuickOrderPage() {
         </div>
       </main>
 
-      {/* Floating Cart Bar */}
+      {/* Floating Cart Bar & Cart Detail Drawer */}
       {cart.length > 0 && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1.5px solid #E8DFD5', padding: '14px 20px', boxShadow: '0 -8px 24px rgba(0,0,0,0.1)', zIndex: 100 }}>
-          <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-            <div>
-              <strong style={{ fontSize: '14px', color: '#2D1A10', display: 'block' }}>
-                {cart.reduce((a, b) => a + b.quantity, 0)} Item Keranjang
-              </strong>
-              <span style={{ fontSize: '13px', color: '#7C4012', fontWeight: 800 }}>
-                Rp {totalAmount.toLocaleString('id-ID')}
-              </span>
-            </div>
+        <>
+          {/* Expanded Cart Overlay/Drawer */}
+          {isCartExpanded && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(45, 26, 16, 0.4)',
+                backdropFilter: 'blur(3px)',
+                zIndex: 90,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end'
+              }}
+              onClick={() => setIsCartExpanded(false)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: '#FFFFFF',
+                  borderTopLeftRadius: '24px',
+                  borderTopRightRadius: '24px',
+                  padding: '20px',
+                  maxWidth: '600px',
+                  width: '100%',
+                  margin: '0 auto',
+                  boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
+                  maxHeight: '70vh',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                {/* Header Drawer */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #E8DFD5' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <ShoppingBag size={20} style={{ color: '#7C4012' }} />
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#2D1A10', margin: 0 }}>
+                      Detail Keranjang ({cart.reduce((a, b) => a + b.quantity, 0)})
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsCartExpanded(false)}
+                    style={{ background: '#F4ECE1', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', color: '#7C4012', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
 
-            <form onSubmit={handleCreateOrder} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="text"
-                placeholder="Nama Pemesan"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                required
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #E8DFD5', outline: 'none', fontSize: '12px', width: '130px' }}
-              />
+                {/* Item List */}
+                <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {cart.map((item, idx) => (
+                    <div
+                      key={`${item.product_id}-${item.variant_type || 'default'}-${idx}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify: 'space-between',
+                        background: '#FAF6F0',
+                        padding: '12px 14px',
+                        borderRadius: '14px',
+                        border: '1px solid #E8DFD5'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, paddingRight: '12px' }}>
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '44px', height: '44px', background: '#F4ECE1', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
+                            <Coffee size={20} />
+                          </div>
+                        )}
+                        <div>
+                          <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#2D1A10', margin: '0 0 4px 0' }}>
+                            {item.name}
+                          </h4>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
+                            Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Qty Controls */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FFFFFF', padding: '4px 8px', borderRadius: '20px', border: '1px solid #E8DFD5' }}>
+                        <button
+                          type="button"
+                          onClick={() => updateCartQuantity(item.product_id, item.variant_type, -1)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: item.quantity === 1 ? '#EF4444' : '#7C4012',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '2px'
+                          }}
+                        >
+                          {item.quantity === 1 ? <Trash2 size={15} /> : <span style={{ fontSize: '16px', fontWeight: 800, lineHeight: 1 }}>-</span>}
+                        </button>
+
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#2D1A10', minWidth: '20px', textAlign: 'center' }}>
+                          {item.quantity}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => updateCartQuantity(item.product_id, item.variant_type, 1)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#7C4012',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '2px'
+                          }}
+                        >
+                          <Plus size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #E8DFD5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#7A695C' }}>Total Pembayaran</span>
+                  <span style={{ fontSize: '18px', fontWeight: 800, color: '#7C4012' }}>
+                    Rp {totalAmount.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sticky Bottom Bar */}
+          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#FFFFFF', borderTop: '1.5px solid #E8DFD5', padding: '14px 20px', boxShadow: '0 -8px 24px rgba(0,0,0,0.1)', zIndex: 100 }}>
+            <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              <div
+                onClick={() => setIsCartExpanded(!isCartExpanded)}
+                style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <strong style={{ fontSize: '14px', color: '#2D1A10', fontWeight: 800 }}>
+                    {cart.reduce((a, b) => a + b.quantity, 0)} Item Keranjang
+                  </strong>
+                  <button
+                    type="button"
+                    style={{
+                      background: '#F4ECE1',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#7C4012',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {isCartExpanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                  </button>
+                </div>
+                <span style={{ fontSize: '14px', color: '#7C4012', fontWeight: 800 }}>
+                  Rp {totalAmount.toLocaleString('id-ID')}
+                </span>
+              </div>
 
               <button
-                type="submit"
-                disabled={isSubmitting}
-                style={{ background: 'linear-gradient(135deg, #7C4012, #D97706)', color: '#FFFFFF', border: 'none', padding: '8px 16px', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                type="button"
+                onClick={() => {
+                  if (cart.length === 0) return;
+                  localStorage.setItem('checkout_cart', JSON.stringify(cart));
+                  localStorage.setItem('checkout_table', tableNumber || '');
+                  navigate('/checkout');
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #7C4012, #D97706)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(124, 64, 18, 0.25)'
+                }}
               >
-                <Send size={12} /> {isSubmitting ? '...' : 'Kirim'}
+                Checkout <ArrowRight size={16} />
               </button>
-            </form>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Variant Selection Modal */}
@@ -375,7 +583,7 @@ export default function QuickOrderPage() {
                 disabled={variantProduct.hot_available === false}
                 onClick={() => {
                   if (variantProduct.hot_available !== false) {
-                    addToCartWithVariant(variantProduct, 'Panas', variantProduct.hot_name || null, variantProduct.hot_price);
+                    addToCartWithVariant(variantProduct, 'Panas', variantProduct.hot_name || null, variantProduct.hot_price, variantProduct.hot_image || variantProduct.image);
                     setVariantProduct(null);
                   }
                 }}
@@ -407,7 +615,7 @@ export default function QuickOrderPage() {
                 disabled={variantProduct.ice_available === false}
                 onClick={() => {
                   if (variantProduct.ice_available !== false) {
-                    addToCartWithVariant(variantProduct, 'Dingin', variantProduct.ice_name || null, variantProduct.ice_price);
+                    addToCartWithVariant(variantProduct, 'Dingin', variantProduct.ice_name || null, variantProduct.ice_price, variantProduct.ice_image || variantProduct.image);
                     setVariantProduct(null);
                   }
                 }}
@@ -429,7 +637,7 @@ export default function QuickOrderPage() {
               >
                 {variantProduct.ice_image ? <img src={variantProduct.ice_image} alt="Ice" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Snowflake size={24} style={{ color: variantProduct.ice_available === false ? '#9CA3AF' : '#0284C7' }} />}
                 <span>{variantProduct.ice_name || 'Dingin (Ice)'}</span>
-                <span style={{ fontSize: '11px', color: variantProduct.ice_available === false ? '#EF4444' : '#0284C7', fontWeight: 700 }}>
+                <span style={{ fontSize: '11px', color: variantProduct.ice_available === false ? '#EF4444' : '#EF4444' ? '#0284C7' : '#0284C7', fontWeight: 700 }}>
                   {variantProduct.ice_available === false ? 'Stok Habis' : `Rp ${Number(variantProduct.ice_price || variantProduct.price).toLocaleString('id-ID')}`}
                 </span>
               </button>
