@@ -1,0 +1,65 @@
+resto-quick-order-coffee-shop/
+├── backend/                  # Laravel API Server
+│   ├── app/
+│   │   ├── Http/
+│   │   │   ├── Controllers/
+│   │   │   │   ├── Api/
+│   │   │   │   │   ├── AuthController.php
+│   │   │   │   │   ├── CategoryController.php
+│   │   │   │   │   ├── ProductController.php
+│   │   │   │   │   ├── TableController.php
+│   │   │   │   │   ├── OrderController.php
+│   │   │   │   │   └── PaymentController.php
+│   │   │   │   └── Controller.php
+│   │   │   └── Middleware/
+│   │   └── Models/
+│   │       ├── Admin.php
+│   │       ├── Category.php
+│   │       ├── Product.php
+│   │       ├── Table.php
+│   │       ├── Order.php
+│   │       └── OrderItem.php
+│   ├── database/
+│   │   ├── migrations/
+│   │   └── seeders/
+│   ├── routes/
+│   │   ├── api.php
+│   │   └── web.php
+│   └── .env.example
+│
+├── frontend/                 # ReactJS Client (Vite / CRA)
+│   ├── public/
+│   └── src/
+│       ├── assets/
+│       ├── components/
+│       │   ├── common/       # Button, Card, Modal, Loading
+│       │   ├── customer/     # MenuCard, Cart, OrderStatus
+│       │   └── admin/        # Sidebar, Navbar, StatCard, OrderTable
+│       ├── context/          # CartContext, AuthContext, TableContext
+│       ├── hooks/
+│       ├── layouts/
+│       │   ├── CustomerLayout.jsx
+│       │   └── AdminLayout.jsx
+│       ├── pages/
+│       │   ├── customer/
+│       │   │   ├── MenuPage.jsx
+│       │   │   ├── CartPage.jsx
+│       │   │   ├── OrderSuccessPage.jsx
+│       │   │   └── TrackOrderPage.jsx
+│       │   └── admin/
+│       │       ├── LoginPage.jsx
+│       │       ├── DashboardPage.jsx
+│       │       ├── CategoriesPage.jsx
+│       │       ├── ProductsPage.jsx
+│       │       ├── TablesPage.jsx     # Generate & Print QR Code
+│       │       └── OrdersPage.jsx     # Realtime / Live Order Board
+│       ├── services/
+│       │   ├── api.js
+│       │   ├── productService.js
+│       │   └── orderService.js
+│       ├── utils/
+│       ├── App.jsx
+│       └── main.jsx
+│
+└── database/
+    └── db_quick_order_coffee_shop.sql   # Script skema database & data awal
