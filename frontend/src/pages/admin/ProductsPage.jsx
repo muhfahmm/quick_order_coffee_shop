@@ -3,8 +3,23 @@ import { Plus, Search, Trash2, Edit3, Coffee, Check, X, Inbox, Upload, Image as 
 import { productService, categoryService } from '../../services/api';
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_products');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_categories');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -37,11 +52,14 @@ export default function ProductsPage() {
         productService.getAll(),
         categoryService.getAll()
       ]);
-      setProducts(resProd.data.data || []);
-      const cats = resCat.data.data || [];
-      setCategories(cats);
-      if (cats.length > 0 && !formData.category_id) {
-        setFormData(prev => ({ ...prev, category_id: cats[0].id }));
+      const prodData = resProd.data.data || [];
+      const catData = resCat.data.data || [];
+      setProducts(prodData);
+      setCategories(catData);
+      localStorage.setItem('cached_products', JSON.stringify(prodData));
+      localStorage.setItem('cached_categories', JSON.stringify(catData));
+      if (catData.length > 0 && !formData.category_id) {
+        setFormData(prev => ({ ...prev, category_id: catData[0].id }));
       }
     } catch (error) {
       console.error('Gagal mengambil data dari database MySQL:', error);
@@ -115,11 +133,32 @@ export default function ProductsPage() {
     }
   };
 
+  const handleOpenAddModal = () => {
+    const defaultCatId = categories[0]?.id || '';
+    setFormData({
+      category_id: defaultCatId,
+      name: '',
+      description: '',
+      price: '',
+      temperature_type: 'both',
+      is_available: true
+    });
+    setImageFile(null);
+    setImagePreview(null);
+    setShowAddModal(true);
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     try {
+      const selectedCatId = formData.category_id || categories[0]?.id;
+      if (!selectedCatId) {
+        alert('Silakan pilih atau tambahkan Kategori Menu terlebih dahulu di halaman Kategori.');
+        return;
+      }
+
       const payload = new FormData();
-      payload.append('category_id', formData.category_id);
+      payload.append('category_id', selectedCatId);
       payload.append('name', formData.name);
       payload.append('price', formData.price);
       payload.append('description', formData.description || '');
@@ -210,7 +249,7 @@ export default function ProductsPage() {
           <h1 className="page-title">Daftar Produk & Menu Kopi</h1>
           <p className="page-subtitle">Upload foto produk dan kelola data menu tersimpan di MySQL (`tb_products`)</p>
         </div>
-        <button onClick={() => setShowAddModal(true)} className="btn-action-primary">
+        <button onClick={handleOpenAddModal} className="btn-action-primary">
           <Plus size={16} /> Tambah Produk
         </button>
       </div>

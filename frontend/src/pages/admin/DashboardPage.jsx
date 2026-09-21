@@ -8,7 +8,7 @@ import {
   Inbox,
   CupSoda
 } from 'lucide-react';
-import { orderService, tableService } from '../../services/api';
+import { orderService, tableService, productService, categoryService } from '../../services/api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -23,16 +23,24 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const [resOrders, resTables] = await Promise.all([
+      const [resOrders, resTables, resProd, resCat] = await Promise.all([
         orderService.getAll(),
-        tableService.getAll()
+        tableService.getAll(),
+        productService.getAll(),
+        categoryService.getAll()
       ]);
 
       const ordersData = resOrders.data.data || [];
       const tablesData = resTables.data.data || [];
+      const prodData = resProd.data.data || [];
+      const catData = resCat.data.data || [];
 
       setRecentOrders(ordersData.slice(0, 5));
       setTables(tablesData);
+
+      localStorage.setItem('cached_tables', JSON.stringify(tablesData));
+      localStorage.setItem('cached_products', JSON.stringify(prodData));
+      localStorage.setItem('cached_categories', JSON.stringify(catData));
 
       const totalRev = ordersData.reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
       const occupiedCount = tablesData.filter(t => t.status === 'occupied').length;

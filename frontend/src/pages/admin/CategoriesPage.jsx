@@ -3,7 +3,14 @@ import { Plus, Tag, Inbox, Edit3, Trash2 } from 'lucide-react';
 import { categoryService } from '../../services/api';
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_categories');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [name, setName] = useState('');
   const [editingCategory, setEditingCategory] = useState(null);
   const [editName, setEditName] = useState('');
@@ -11,7 +18,9 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     try {
       const res = await categoryService.getAll();
-      setCategories(res.data.data || []);
+      const catData = res.data.data || [];
+      setCategories(catData);
+      localStorage.setItem('cached_categories', JSON.stringify(catData));
     } catch (err) {
       console.error('Gagal mengambil kategori dari database:', err);
     }

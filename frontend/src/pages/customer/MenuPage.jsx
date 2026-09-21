@@ -3,9 +3,33 @@ import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X } from 'luc
 import { productService, categoryService, orderService, tableService } from '../../services/api';
 
 export default function MenuPage() {
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [tables, setTables] = useState([]);
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_categories');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_products');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [tables, setTables] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_tables');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [cart, setCart] = useState([]);
   const [customerName, setCustomerName] = useState('');
@@ -31,9 +55,17 @@ export default function MenuPage() {
           categoryService.getAll(),
           tableService.getAll()
         ]);
-        setProducts(resProd.data.data || []);
-        setCategories(resCat.data.data || []);
-        setTables(resTbl.data.data || []);
+        const prodData = resProd.data.data || [];
+        const catData = resCat.data.data || [];
+        const tblData = resTbl.data.data || [];
+
+        setProducts(prodData);
+        setCategories(catData);
+        setTables(tblData);
+
+        localStorage.setItem('cached_products', JSON.stringify(prodData));
+        localStorage.setItem('cached_categories', JSON.stringify(catData));
+        localStorage.setItem('cached_tables', JSON.stringify(tblData));
       } catch (err) {
         console.error('Gagal memuat menu customer:', err);
       }
@@ -94,7 +126,6 @@ export default function MenuPage() {
     e.preventDefault();
 
     if (!tableNumber) {
-      alert('Silakan pilih meja terlebih dahulu sebelum mengirim pesanan.');
       setIsTableModalOpen(true);
       return;
     }
@@ -734,7 +765,7 @@ export default function MenuPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: '20px'
+                marginBottom: '16px'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -768,6 +799,27 @@ export default function MenuPage() {
                 <X size={18} />
               </button>
             </div>
+
+            {!tableNumber && (
+              <div
+                style={{
+                  background: '#FEF3C7',
+                  border: '1px solid #F59E0B',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  marginBottom: '16px',
+                  fontSize: '13px',
+                  color: '#92400E',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>⚠️</span>
+                <span>Silakan pilih nomor meja Anda terlebih dahulu untuk mengirim pesanan.</span>
+              </div>
+            )}
 
             <p style={{ fontSize: '13px', color: '#7A695C', marginBottom: '16px' }}>
               Silakan pilih posisi/nomor meja Anda untuk melanjutkan pemesanan:

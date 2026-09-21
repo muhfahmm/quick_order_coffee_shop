@@ -3,13 +3,22 @@ import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2 } from 'lucide-react
 import { tableService } from '../../services/api';
 
 export default function TablesPage() {
-  const [tables, setTables] = useState([]);
+  const [tables, setTables] = useState(() => {
+    try {
+      const cached = localStorage.getItem('cached_tables');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [newTableName, setNewTableName] = useState('');
 
   const fetchTables = async () => {
     try {
       const res = await tableService.getAll();
-      setTables(res.data.data || []);
+      const tblData = res.data.data || [];
+      setTables(tblData);
+      localStorage.setItem('cached_tables', JSON.stringify(tblData));
     } catch (err) {
       console.error('Gagal mengambil data meja dari database:', err);
     }
