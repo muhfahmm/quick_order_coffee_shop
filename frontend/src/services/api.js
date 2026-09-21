@@ -26,10 +26,22 @@ export const authService = {
 
 export const productService = {
   getAll: () => api.get('/products'),
-  create: (data) => api.post('/products', data),
-  update: (id, data) => api.put(`/products/${id}`, data),
+  create: (data) => {
+    if (data instanceof FormData) {
+      return api.post('/products', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+    return api.post('/products', data);
+  },
+  update: (id, data) => {
+    if (data instanceof FormData) {
+      data.append('_method', 'PUT');
+      return api.post(`/products/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+    return api.put(`/products/${id}`, data);
+  },
   delete: (id) => api.delete(`/products/${id}`)
 };
+
 
 export const categoryService = {
   getAll: () => api.get('/categories'),

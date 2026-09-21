@@ -359,6 +359,20 @@ export default function MenuPage() {
               }}
             >
               <div>
+                {prod.image && (
+                  <img
+                    src={prod.image}
+                    alt={prod.name}
+                    style={{
+                      width: '100%',
+                      height: '140px',
+                      objectFit: 'cover',
+                      borderRadius: '12px',
+                      marginBottom: '12px'
+                    }}
+                  />
+                )}
+
                 <div
                   style={{
                     display: 'flex',
@@ -367,6 +381,7 @@ export default function MenuPage() {
                     marginBottom: '8px'
                   }}
                 >
+
                   <span
                     style={{
                       fontSize: '11px',

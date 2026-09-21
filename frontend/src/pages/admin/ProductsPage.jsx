@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit3, Coffee, Check, X, Inbox } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Coffee, Check, X, Inbox, Upload, Image as ImageIcon } from 'lucide-react';
 import { productService, categoryService } from '../../services/api';
 
 export default function ProductsPage() {
@@ -16,6 +16,8 @@ export default function ProductsPage() {
     price: '',
     is_available: true
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [editFormData, setEditFormData] = useState({
     category_id: '',
@@ -24,6 +26,8 @@ export default function ProductsPage() {
     price: '',
     is_available: true
   });
+  const [editImageFile, setEditImageFile] = useState(null);
+  const [editImagePreview, setEditImagePreview] = useState(null);
 
   const fetchProductsAndCategories = async () => {
     try {
@@ -51,17 +55,45 @@ export default function ProductsPage() {
     setFormData({ ...formData, [e.target.name]: val });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleEditChange = (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setEditFormData({ ...editFormData, [e.target.name]: val });
   };
 
+  const handleEditFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditImageFile(file);
+      setEditImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     try {
-      await productService.create(formData);
+      const payload = new FormData();
+      payload.append('category_id', formData.category_id);
+      payload.append('name', formData.name);
+      payload.append('price', formData.price);
+      payload.append('description', formData.description || '');
+      payload.append('is_available', formData.is_available ? 1 : 0);
+      if (imageFile) {
+        payload.append('image', imageFile);
+      }
+
+      await productService.create(payload);
       setShowAddModal(false);
       setFormData({ category_id: categories[0]?.id || '', name: '', description: '', price: '', is_available: true });
+      setImageFile(null);
+      setImagePreview(null);
       fetchProductsAndCategories();
     } catch (error) {
       alert(error.response?.data?.message || 'Gagal menyimpan menu ke database.');
@@ -77,14 +109,28 @@ export default function ProductsPage() {
       price: prod.price,
       is_available: prod.is_available
     });
+    setEditImageFile(null);
+    setEditImagePreview(prod.image || null);
   };
 
   const handleUpdateProduct = async (e) => {
     e.preventDefault();
     if (!editingProduct) return;
     try {
-      await productService.update(editingProduct.id, editFormData);
+      const payload = new FormData();
+      payload.append('category_id', editFormData.category_id);
+      payload.append('name', editFormData.name);
+      payload.append('price', editFormData.price);
+      payload.append('description', editFormData.description || '');
+      payload.append('is_available', editFormData.is_available ? 1 : 0);
+      if (editImageFile) {
+        payload.append('image', editImageFile);
+      }
+
+      await productService.update(editingProduct.id, payload);
       setEditingProduct(null);
+      setEditImageFile(null);
+      setEditImagePreview(null);
       fetchProductsAndCategories();
     } catch (error) {
       alert(error.response?.data?.message || 'Gagal memperbarui menu produk.');
@@ -120,7 +166,7 @@ export default function ProductsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Daftar Produk & Menu Kopi</h1>
-          <p className="page-subtitle">Data produk langsung tersimpan & terambil dari database MySQL (`tb_products`)</p>
+          <p className="page-subtitle">Upload foto produk dan kelola data menu tersimpan di MySQL (`tb_products`)</p>
         </div>
         <button onClick={() => setShowAddModal(true)} className="btn-action-primary">
           <Plus size={16} /> Tambah Produk
@@ -152,13 +198,26 @@ export default function ProductsPage() {
               </div>
 
               <div className="form-group">
+                <label>Upload Foto / Gambar Produk</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <label htmlFor="upload-add-image" style={{ background: '#F4ECE1', border: '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
+                    <Upload size={16} /> Pilih File Foto
+                  </label>
+                  <input id="upload-add-image" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                  {imagePreview && (
+                    <img src={imagePreview} alt="Preview" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #E8DFD5' }} />
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label>Deskripsi</label>
                 <textarea name="description" placeholder="Penjelasan singkat menu..." value={formData.description} onChange={handleChange} />
               </div>
 
               <div className="modal-actions">
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary">Batal</button>
-                <button type="submit" className="btn-primary-auth">Simpan Ke MySQL</button>
+                <button type="submit" className="btn-primary-auth">Upload & Simpan Ke MySQL</button>
               </div>
             </form>
           </div>
@@ -187,6 +246,19 @@ export default function ProductsPage() {
               <div className="form-group">
                 <label>Harga (Rp)</label>
                 <input type="number" name="price" value={editFormData.price} onChange={handleEditChange} required />
+              </div>
+
+              <div className="form-group">
+                <label>Upload Foto / Gambar Produk Baru</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <label htmlFor="upload-edit-image" style={{ background: '#F4ECE1', border: '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
+                    <Upload size={16} /> Ganti File Foto
+                  </label>
+                  <input id="upload-edit-image" type="file" accept="image/*" onChange={handleEditFileChange} style={{ display: 'none' }} />
+                  {editImagePreview && (
+                    <img src={editImagePreview} alt="Preview" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #E8DFD5' }} />
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -219,7 +291,7 @@ export default function ProductsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Nama Menu</th>
+              <th>Foto & Nama Menu</th>
               <th>Kategori</th>
               <th>Harga</th>
               <th>Status Stok</th>
@@ -232,7 +304,17 @@ export default function ProductsPage() {
                 <tr key={prod.id}>
                   <td className="font-semibold">
                     <div className="product-title-cell">
-                      <Coffee size={18} className="text-amber-700" />
+                      {prod.image ? (
+                        <img
+                          src={prod.image}
+                          alt={prod.name}
+                          style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #E8DFD5' }}
+                        />
+                      ) : (
+                        <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#F4ECE1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Coffee size={20} className="text-amber-700" />
+                        </div>
+                      )}
                       <span>{prod.name}</span>
                     </div>
                   </td>
