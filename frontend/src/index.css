@@ -1125,3 +1125,64 @@ a.btn-customer-redirect:active {
     border-color: #FECACA;
   }
 }
+
+/* Customer Mobile Menu Carousel & Grid (3-3-3 Layout) */
+.customer-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .customer-products-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 8px !important;
+    padding-bottom: 14px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-coffee) transparent;
+  }
+
+  .customer-products-grid::-webkit-scrollbar {
+    height: 4px;
+  }
+  .customer-products-grid::-webkit-scrollbar-thumb {
+    background: var(--accent-coffee);
+    border-radius: 4px;
+  }
+
+  .customer-product-card {
+    min-width: calc((100vw - 40px - 16px) / 3) !important;
+    max-width: calc((100vw - 40px - 16px) / 3) !important;
+    flex: 0 0 calc((100vw - 40px - 16px) / 3) !important;
+    scroll-snap-align: start !important;
+    padding: 8px !important;
+    border-radius: 14px !important;
+  }
+
+  .customer-product-card .card-img {
+    height: 75px !important;
+    border-radius: 10px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .customer-product-card .card-title {
+    font-size: 10.5px !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .customer-product-card .card-price {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: #7A695C !important;
+  }
+}

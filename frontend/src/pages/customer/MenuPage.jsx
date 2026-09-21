@@ -356,137 +356,82 @@ export default function MenuPage() {
           </div>
         )}
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: '20px'
-          }}
-        >
+        <div className="customer-products-grid">
           {filteredProducts.map((prod) => (
             <div
               key={prod.id}
+              className="customer-product-card"
+              onClick={() => prod.is_available && addToCart(prod)}
               style={{
                 background: '#FFFFFF',
                 border: '1px solid #E8DFD5',
-                borderRadius: '18px',
-                padding: '18px',
+                borderRadius: '16px',
+                padding: '12px',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 2px 6px rgba(45, 26, 16, 0.03)'
+                alignItems: 'center',
+                textAlign: 'center',
+                cursor: prod.is_available ? 'pointer' : 'not-allowed',
+                boxShadow: '0 2px 8px rgba(45, 26, 16, 0.04)',
+                opacity: prod.is_available ? 1 : 0.6,
+                transition: 'transform 0.15s ease, boxShadow 0.15s ease'
               }}
             >
-              <div>
-                {prod.image && (
-                  <img
-                    src={prod.image}
-                    alt={prod.name}
-                    style={{
-                      width: '100%',
-                      height: '140px',
-                      objectFit: 'cover',
-                      borderRadius: '12px',
-                      marginBottom: '12px'
-                    }}
-                  />
-                )}
-
-                <div
+              {prod.image ? (
+                <img
+                  src={prod.image}
+                  alt={prod.name}
+                  className="card-img"
                   style={{
+                    width: '100%',
+                    height: '110px',
+                    objectFit: 'cover',
+                    borderRadius: '12px',
+                    marginBottom: '10px'
+                  }}
+                />
+              ) : (
+                <div
+                  className="card-img"
+                  style={{
+                    width: '100%',
+                    height: '110px',
+                    background: '#F4ECE1',
+                    borderRadius: '12px',
+                    marginBottom: '10px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '8px'
-                  }}
-                >
-
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      background: '#F4ECE1',
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      color: '#7C4012',
-                      fontWeight: 700
-                    }}
-                  >
-                    {prod.category?.name || 'Menu'}
-                  </span>
-
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: prod.is_available ? '#059669' : '#DC2626'
-                    }}
-                  >
-                    {prod.is_available ? 'Tersedia' : 'Habis'}
-                  </span>
-                </div>
-
-                <h3
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 800,
-                    color: '#2D1A10',
-                    marginBottom: '4px'
-                  }}
-                >
-                  {prod.name}
-                </h3>
-
-                <p
-                  style={{
-                    fontSize: '12px',
-                    color: '#7A695C',
-                    minHeight: '36px',
-                    marginBottom: '12px'
-                  }}
-                >
-                  {prod.description || 'Sajian kopi nikmat khas kedai.'}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #F0E8E1'
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '15px',
-                    fontWeight: 800,
+                    justifyContent: 'center',
                     color: '#7C4012'
                   }}
                 >
-                  Rp {Number(prod.price).toLocaleString('id-ID')}
-                </span>
+                  <Coffee size={32} />
+                </div>
+              )}
 
-                <button
-                  disabled={!prod.is_available}
-                  onClick={() => addToCart(prod)}
-                  style={{
-                    background: prod.is_available ? '#7C4012' : '#D3C4B5',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    padding: '8px 14px',
-                    borderRadius: '10px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: prod.is_available ? 'pointer' : 'not-allowed',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <Plus size={14} /> Tambah
-                </button>
-              </div>
+              <h3
+                className="card-title"
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: '#2D1A10',
+                  margin: '0 0 4px 0',
+                  lineHeight: '1.3'
+                }}
+              >
+                {prod.name}
+              </h3>
+
+              <span
+                className="card-price"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#7A695C'
+                }}
+              >
+                Rp {Number(prod.price).toLocaleString('id-ID')}
+              </span>
             </div>
           ))}
         </div>
