@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit3, Coffee, Check, X, Inbox, Upload, Image as ImageIcon } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Coffee, Check, X, Inbox, Upload, Image as ImageIcon, Flame, ChefHat, Snowflake, Target, Sparkles, Info } from 'lucide-react';
 import { productService, categoryService } from '../../services/api';
 
 export default function ProductsPage() {
@@ -23,6 +23,7 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [activeImageTarget, setActiveImageTarget] = useState('main'); // 'main', 'hot', 'ice'
 
   const [formData, setFormData] = useState({
     category_id: '',
@@ -30,10 +31,18 @@ export default function ProductsPage() {
     description: '',
     price: '',
     temperature_type: 'both',
-    is_available: true
+    hot_name: '',
+    ice_name: '',
+    is_available: true,
+    is_best_seller: false,
+    is_chef_pick: false
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [hotImageFile, setHotImageFile] = useState(null);
+  const [hotImagePreview, setHotImagePreview] = useState(null);
+  const [iceImageFile, setIceImageFile] = useState(null);
+  const [iceImagePreview, setIceImagePreview] = useState(null);
 
   const [editFormData, setEditFormData] = useState({
     category_id: '',
@@ -41,10 +50,18 @@ export default function ProductsPage() {
     description: '',
     price: '',
     temperature_type: 'both',
-    is_available: true
+    hot_name: '',
+    ice_name: '',
+    is_available: true,
+    is_best_seller: false,
+    is_chef_pick: false
   });
   const [editImageFile, setEditImageFile] = useState(null);
   const [editImagePreview, setEditImagePreview] = useState(null);
+  const [editHotImageFile, setEditHotImageFile] = useState(null);
+  const [editHotImagePreview, setEditHotImagePreview] = useState(null);
+  const [editIceImageFile, setEditIceImageFile] = useState(null);
+  const [editIceImagePreview, setEditIceImagePreview] = useState(null);
 
   const fetchProductsAndCategories = async () => {
     try {
@@ -70,6 +87,35 @@ export default function ProductsPage() {
     const handlePaste = (e) => {
       if (!showAddModal && !editingProduct) return;
 
+      const assignImage = (fileOrUrl) => {
+        const isFile = fileOrUrl instanceof File;
+        const previewUrl = isFile ? URL.createObjectURL(fileOrUrl) : fileOrUrl;
+
+        if (showAddModal) {
+          if (activeImageTarget === 'hot') {
+            setHotImageFile(fileOrUrl);
+            setHotImagePreview(previewUrl);
+          } else if (activeImageTarget === 'ice') {
+            setIceImageFile(fileOrUrl);
+            setIceImagePreview(previewUrl);
+          } else {
+            setImageFile(fileOrUrl);
+            setImagePreview(previewUrl);
+          }
+        } else if (editingProduct) {
+          if (activeImageTarget === 'hot') {
+            setEditHotImageFile(fileOrUrl);
+            setEditHotImagePreview(previewUrl);
+          } else if (activeImageTarget === 'ice') {
+            setEditIceImageFile(fileOrUrl);
+            setEditIceImagePreview(previewUrl);
+          } else {
+            setEditImageFile(fileOrUrl);
+            setEditImagePreview(previewUrl);
+          }
+        }
+      };
+
       const items = e.clipboardData?.items;
       if (items) {
         for (let i = 0; i < items.length; i++) {
@@ -77,14 +123,8 @@ export default function ProductsPage() {
           if (item.type.indexOf('image') !== -1) {
             const blob = item.getAsFile();
             if (blob) {
-              const file = new File([blob], `pasted_image_${Date.now()}.png`, { type: blob.type });
-              if (showAddModal) {
-                setImageFile(file);
-                setImagePreview(URL.createObjectURL(file));
-              } else if (editingProduct) {
-                setEditImageFile(file);
-                setEditImagePreview(URL.createObjectURL(file));
-              }
+              const file = new File([blob], `pasted_${activeImageTarget}_${Date.now()}.png`, { type: blob.type });
+              assignImage(file);
             }
             return;
           }
@@ -93,30 +133,33 @@ export default function ProductsPage() {
 
       const pastedText = e.clipboardData?.getData('text');
       if (pastedText && (pastedText.startsWith('http://') || pastedText.startsWith('https://') || pastedText.startsWith('data:image/'))) {
-        if (showAddModal) {
-          setImagePreview(pastedText);
-          setImageFile(pastedText);
-        } else if (editingProduct) {
-          setEditImagePreview(pastedText);
-          setEditImageFile(pastedText);
-        }
+        assignImage(pastedText);
       }
     };
 
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, [showAddModal, editingProduct]);
+  }, [showAddModal, editingProduct, activeImageTarget]);
 
   const handleChange = (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({ ...formData, [e.target.name]: val });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e, target = 'main') => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      const preview = URL.createObjectURL(file);
+      if (target === 'hot') {
+        setHotImageFile(file);
+        setHotImagePreview(preview);
+      } else if (target === 'ice') {
+        setIceImageFile(file);
+        setIceImagePreview(preview);
+      } else {
+        setImageFile(file);
+        setImagePreview(preview);
+      }
     }
   };
 
@@ -125,11 +168,20 @@ export default function ProductsPage() {
     setEditFormData({ ...editFormData, [e.target.name]: val });
   };
 
-  const handleEditFileChange = (e) => {
+  const handleEditFileChange = (e, target = 'main') => {
     const file = e.target.files[0];
     if (file) {
-      setEditImageFile(file);
-      setEditImagePreview(URL.createObjectURL(file));
+      const preview = URL.createObjectURL(file);
+      if (target === 'hot') {
+        setEditHotImageFile(file);
+        setEditHotImagePreview(preview);
+      } else if (target === 'ice') {
+        setEditIceImageFile(file);
+        setEditIceImagePreview(preview);
+      } else {
+        setEditImageFile(file);
+        setEditImagePreview(preview);
+      }
     }
   };
 
@@ -141,10 +193,19 @@ export default function ProductsPage() {
       description: '',
       price: '',
       temperature_type: 'both',
-      is_available: true
+      hot_name: '',
+      ice_name: '',
+      is_available: true,
+      is_best_seller: false,
+      is_chef_pick: false
     });
     setImageFile(null);
     setImagePreview(null);
+    setHotImageFile(null);
+    setHotImagePreview(null);
+    setIceImageFile(null);
+    setIceImagePreview(null);
+    setActiveImageTarget('main');
     setShowAddModal(true);
   };
 
@@ -163,16 +224,17 @@ export default function ProductsPage() {
       payload.append('price', formData.price);
       payload.append('description', formData.description || '');
       payload.append('temperature_type', formData.temperature_type || 'both');
+      payload.append('hot_name', formData.hot_name || '');
+      payload.append('ice_name', formData.ice_name || '');
       payload.append('is_available', formData.is_available ? 1 : 0);
-      if (imageFile) {
-        payload.append('image', imageFile);
-      }
+      payload.append('is_best_seller', formData.is_best_seller ? 1 : 0);
+      payload.append('is_chef_pick', formData.is_chef_pick ? 1 : 0);
+      if (imageFile) payload.append('image', imageFile);
+      if (hotImageFile) payload.append('hot_image', hotImageFile);
+      if (iceImageFile) payload.append('ice_image', iceImageFile);
 
       await productService.create(payload);
       setShowAddModal(false);
-      setFormData({ category_id: categories[0]?.id || '', name: '', description: '', price: '', temperature_type: 'both', is_available: true });
-      setImageFile(null);
-      setImagePreview(null);
       fetchProductsAndCategories();
     } catch (error) {
       alert(error.response?.data?.message || 'Gagal menyimpan menu ke database.');
@@ -187,10 +249,19 @@ export default function ProductsPage() {
       description: prod.description || '',
       price: prod.price,
       temperature_type: prod.temperature_type || 'both',
-      is_available: prod.is_available
+      hot_name: prod.hot_name || '',
+      ice_name: prod.ice_name || '',
+      is_available: prod.is_available,
+      is_best_seller: Boolean(prod.is_best_seller),
+      is_chef_pick: Boolean(prod.is_chef_pick)
     });
     setEditImageFile(null);
     setEditImagePreview(prod.image || null);
+    setEditHotImageFile(null);
+    setEditHotImagePreview(prod.hot_image || null);
+    setEditIceImageFile(null);
+    setEditIceImagePreview(prod.ice_image || null);
+    setActiveImageTarget('main');
   };
 
   const handleUpdateProduct = async (e) => {
@@ -203,15 +274,17 @@ export default function ProductsPage() {
       payload.append('price', editFormData.price);
       payload.append('description', editFormData.description || '');
       payload.append('temperature_type', editFormData.temperature_type || 'both');
+      payload.append('hot_name', editFormData.hot_name || '');
+      payload.append('ice_name', editFormData.ice_name || '');
       payload.append('is_available', editFormData.is_available ? 1 : 0);
-      if (editImageFile) {
-        payload.append('image', editImageFile);
-      }
+      payload.append('is_best_seller', editFormData.is_best_seller ? 1 : 0);
+      payload.append('is_chef_pick', editFormData.is_chef_pick ? 1 : 0);
+      if (editImageFile) payload.append('image', editImageFile);
+      if (editHotImageFile) payload.append('hot_image', editHotImageFile);
+      if (editIceImageFile) payload.append('ice_image', editIceImageFile);
 
       await productService.update(editingProduct.id, payload);
       setEditingProduct(null);
-      setEditImageFile(null);
-      setEditImagePreview(null);
       fetchProductsAndCategories();
     } catch (error) {
       alert(error.response?.data?.message || 'Gagal memperbarui menu produk.');
@@ -289,20 +362,89 @@ export default function ProductsPage() {
               </div>
 
               <div className="form-group">
-                <label>Foto Produk (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <label htmlFor="upload-add-image" style={{ background: '#F4ECE1', border: '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
-                    <Upload size={16} /> Pilih File / Paste Gambar
+                <label>Highlight Status Menu</label>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
+                    <input type="checkbox" name="is_best_seller" checked={formData.is_best_seller} onChange={handleChange} />
+                    <Flame size={14} className="text-red-500" /> Tampilkan di Best Seller
                   </label>
-                  <input id="upload-add-image" type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
+                    <input type="checkbox" name="is_chef_pick" checked={formData.is_chef_pick} onChange={handleChange} />
+                    <ChefHat size={14} className="text-amber-700" /> Rekomendasi Chef/Barista
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Foto Utama Produk (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveImageTarget('main')}>
+                  <label htmlFor="upload-add-image" style={{ background: activeImageTarget === 'main' ? '#FEE2E2' : '#F4ECE1', border: activeImageTarget === 'main' ? '2px solid #DC2626' : '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
+                    <Upload size={16} /> Pilih File / Paste Utama {activeImageTarget === 'main' && <Target size={14} className="text-red-600 ml-1 inline" />}
+                  </label>
+                  <input id="upload-add-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'main')} style={{ display: 'none' }} />
                   {imagePreview && (
-                    <img src={imagePreview} alt="Preview" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
+                    <img src={imagePreview} alt="Preview Utama" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
                   )}
                 </div>
-                <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '4px', display: 'block' }}>
-                  💡 Tips: Anda dapat langsung menekan <strong>Ctrl + V (Paste)</strong> gambar dari Clipboard.
-                </span>
               </div>
+
+              {formData.temperature_type === 'both' && (
+                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Coffee size={14} /> / <Snowflake size={14} /> Varian Khusus Panas & Dingin (Gambar & Nama Berbeda)
+                  </h4>
+
+                  <div className="form-group mb-3">
+                    <label style={{ fontSize: '12px', color: '#9A3412', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Coffee size={14} /> Nama & Gambar Varian Panas (Hot)
+                    </label>
+                    <input
+                      type="text"
+                      name="hot_name"
+                      placeholder="Contoh: Espresso Hot / Single Panas"
+                      value={formData.hot_name}
+                      onChange={handleChange}
+                      style={{ marginBottom: '8px' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('hot')}>
+                      <label htmlFor="upload-add-hot-image" style={{ background: activeImageTarget === 'hot' ? '#FED7AA' : '#FFFFFF', border: activeImageTarget === 'hot' ? '2px solid #C2410C' : '1px dashed #F97316', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#9A3412' }}>
+                        <Upload size={14} /> Upload / Paste Foto Panas {activeImageTarget === 'hot' && <Target size={14} className="text-orange-600 ml-1 inline" />}
+                      </label>
+                      <input id="upload-add-hot-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'hot')} style={{ display: 'none' }} />
+                      {hotImagePreview && (
+                        <img src={hotImagePreview} alt="Preview Hot" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #EA580C' }} />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="form-group mb-0">
+                    <label style={{ fontSize: '12px', color: '#0369A1', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Snowflake size={14} /> Nama & Gambar Varian Dingin (Ice)
+                    </label>
+                    <input
+                      type="text"
+                      name="ice_name"
+                      placeholder="Contoh: Espresso Ice Blend"
+                      value={formData.ice_name}
+                      onChange={handleChange}
+                      style={{ marginBottom: '8px' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('ice')}>
+                      <label htmlFor="upload-add-ice-image" style={{ background: activeImageTarget === 'ice' ? '#BAE6FD' : '#FFFFFF', border: activeImageTarget === 'ice' ? '2px solid #0284C7' : '1px dashed #0EA5E9', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#0369A1' }}>
+                        <Upload size={14} /> Upload / Paste Foto Dingin {activeImageTarget === 'ice' && <Target size={14} className="text-sky-600 ml-1 inline" />}
+                      </label>
+                      <input id="upload-add-ice-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'ice')} style={{ display: 'none' }} />
+                      {iceImagePreview && (
+                        <img src={iceImagePreview} alt="Preview Ice" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #0284C7' }} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '-6px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Info size={12} /> Tips: Klik area file target (Utama / Hot / Ice) lalu tekan <strong>Ctrl + V (Paste)</strong> untuk memasukkan gambar Clipboard langsung.
+              </span>
 
               <div className="form-group">
                 <label>Deskripsi</label>
@@ -353,20 +495,89 @@ export default function ProductsPage() {
               </div>
 
               <div className="form-group">
-                <label>Foto Produk Baru (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <label htmlFor="upload-edit-image" style={{ background: '#F4ECE1', border: '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
-                    <Upload size={16} /> Ganti File / Paste Gambar
+                <label>Highlight Status Menu</label>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
+                    <input type="checkbox" name="is_best_seller" checked={editFormData.is_best_seller} onChange={handleEditChange} />
+                    <Flame size={14} className="text-red-500" /> Tampilkan di Best Seller
                   </label>
-                  <input id="upload-edit-image" type="file" accept="image/*" onChange={handleEditFileChange} style={{ display: 'none' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
+                    <input type="checkbox" name="is_chef_pick" checked={editFormData.is_chef_pick} onChange={handleEditChange} />
+                    <ChefHat size={14} className="text-amber-700" /> Rekomendasi Chef/Barista
+                  </label>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Foto Produk Utama (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveImageTarget('main')}>
+                  <label htmlFor="upload-edit-image" style={{ background: activeImageTarget === 'main' ? '#FEE2E2' : '#F4ECE1', border: activeImageTarget === 'main' ? '2px solid #DC2626' : '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
+                    <Upload size={16} /> Ganti File / Paste Utama {activeImageTarget === 'main' && <Target size={14} className="text-red-600 ml-1 inline" />}
+                  </label>
+                  <input id="upload-edit-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'main')} style={{ display: 'none' }} />
                   {editImagePreview && (
-                    <img src={editImagePreview} alt="Preview" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
+                    <img src={editImagePreview} alt="Preview Edit Utama" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
                   )}
                 </div>
-                <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '4px', display: 'block' }}>
-                  💡 Tips: Anda dapat langsung menekan <strong>Ctrl + V (Paste)</strong> gambar dari Clipboard.
-                </span>
               </div>
+
+              {editFormData.temperature_type === 'both' && (
+                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Coffee size={14} /> / <Snowflake size={14} /> Varian Khusus Panas & Dingin (Gambar & Nama Berbeda)
+                  </h4>
+
+                  <div className="form-group mb-3">
+                    <label style={{ fontSize: '12px', color: '#9A3412', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Coffee size={14} /> Nama & Gambar Varian Panas (Hot)
+                    </label>
+                    <input
+                      type="text"
+                      name="hot_name"
+                      placeholder="Contoh: Espresso Hot / Single Panas"
+                      value={editFormData.hot_name}
+                      onChange={handleEditChange}
+                      style={{ marginBottom: '8px' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('hot')}>
+                      <label htmlFor="upload-edit-hot-image" style={{ background: activeImageTarget === 'hot' ? '#FED7AA' : '#FFFFFF', border: activeImageTarget === 'hot' ? '2px solid #C2410C' : '1px dashed #F97316', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#9A3412' }}>
+                        <Upload size={14} /> Upload / Paste Foto Panas {activeImageTarget === 'hot' && <Target size={14} className="text-orange-600 ml-1 inline" />}
+                      </label>
+                      <input id="upload-edit-hot-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'hot')} style={{ display: 'none' }} />
+                      {editHotImagePreview && (
+                        <img src={editHotImagePreview} alt="Preview Edit Hot" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #EA580C' }} />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="form-group mb-0">
+                    <label style={{ fontSize: '12px', color: '#0369A1', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Snowflake size={14} /> Nama & Gambar Varian Dingin (Ice)
+                    </label>
+                    <input
+                      type="text"
+                      name="ice_name"
+                      placeholder="Contoh: Espresso Ice Blend"
+                      value={editFormData.ice_name}
+                      onChange={handleEditChange}
+                      style={{ marginBottom: '8px' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('ice')}>
+                      <label htmlFor="upload-edit-ice-image" style={{ background: activeImageTarget === 'ice' ? '#BAE6FD' : '#FFFFFF', border: activeImageTarget === 'ice' ? '2px solid #0284C7' : '1px dashed #0EA5E9', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#0369A1' }}>
+                        <Upload size={14} /> Upload / Paste Foto Dingin {activeImageTarget === 'ice' && <Target size={14} className="text-sky-600 ml-1 inline" />}
+                      </label>
+                      <input id="upload-edit-ice-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'ice')} style={{ display: 'none' }} />
+                      {editIceImagePreview && (
+                        <img src={editIceImagePreview} alt="Preview Edit Ice" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #0284C7' }} />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '-6px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Info size={12} /> Tips: Klik area file target (Utama / Hot / Ice) lalu tekan <strong>Ctrl + V (Paste)</strong> untuk memasukkan gambar Clipboard langsung.
+              </span>
 
               <div className="form-group">
                 <label>Deskripsi</label>
@@ -401,6 +612,7 @@ export default function ProductsPage() {
               <th>Foto & Nama Menu</th>
               <th>Kategori</th>
               <th>Suhu / Varian</th>
+              <th>Highlight Menu</th>
               <th>Harga</th>
               <th>Status Stok</th>
               <th>Aksi</th>
@@ -429,11 +641,18 @@ export default function ProductsPage() {
                   <td><span className="table-tag">{prod.category?.name || '-'}</span></td>
                   <td>
                     <span className="table-tag">
-                      {prod.temperature_type === 'both' && '☕ Panas / 🧊 Dingin'}
-                      {prod.temperature_type === 'hot_only' && '☕ Hanya Panas'}
-                      {prod.temperature_type === 'ice_only' && '🧊 Hanya Dingin'}
+                      {prod.temperature_type === 'both' && <><Coffee size={12} className="inline mr-1" /> Panas / <Snowflake size={12} className="inline mr-1" /> Dingin</>}
+                      {prod.temperature_type === 'hot_only' && <><Coffee size={12} className="inline mr-1" /> Hanya Panas</>}
+                      {prod.temperature_type === 'ice_only' && <><Snowflake size={12} className="inline mr-1" /> Hanya Dingin</>}
                       {(!prod.temperature_type || prod.temperature_type === 'none') && 'Makanan / General'}
                     </span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      {prod.is_best_seller && <span className="table-tag" style={{ background: '#FEF2F2', color: '#DC2626' }}><Flame size={12} className="inline mr-1" /> Best Seller</span>}
+                      {prod.is_chef_pick && <span className="table-tag" style={{ background: '#FEF3C7', color: '#92400E' }}><ChefHat size={12} className="inline mr-1" /> Rekomendasi</span>}
+                      {!prod.is_best_seller && !prod.is_chef_pick && <span className="text-xs text-slate-400">-</span>}
+                    </div>
                   </td>
                   <td className="font-semibold">Rp {Number(prod.price).toLocaleString('id-ID')}</td>
                   <td>

@@ -62,6 +62,8 @@ CREATE TABLE `tb_products` (
   `image` VARCHAR(255) NULL,
   `is_available` TINYINT(1) DEFAULT 1,
   `temperature_type` ENUM('both', 'hot_only', 'ice_only', 'none') DEFAULT 'both',
+  `is_best_seller` TINYINT(1) DEFAULT 0,
+  `is_chef_pick` TINYINT(1) DEFAULT 0,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `tb_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
