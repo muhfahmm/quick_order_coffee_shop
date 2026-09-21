@@ -229,7 +229,13 @@ export default function ProductsPage() {
       payload.append('is_available', formData.is_available ? 1 : 0);
       payload.append('is_best_seller', formData.is_best_seller ? 1 : 0);
       payload.append('is_chef_pick', formData.is_chef_pick ? 1 : 0);
-      if (imageFile) payload.append('image', imageFile);
+      if (imageFile) {
+        payload.append('image', imageFile);
+      } else if (formData.temperature_type === 'both' && hotImageFile) {
+        payload.append('image', hotImageFile);
+      } else if (formData.temperature_type === 'both' && iceImageFile) {
+        payload.append('image', iceImageFile);
+      }
       if (hotImageFile) payload.append('hot_image', hotImageFile);
       if (iceImageFile) payload.append('ice_image', iceImageFile);
 
@@ -279,7 +285,13 @@ export default function ProductsPage() {
       payload.append('is_available', editFormData.is_available ? 1 : 0);
       payload.append('is_best_seller', editFormData.is_best_seller ? 1 : 0);
       payload.append('is_chef_pick', editFormData.is_chef_pick ? 1 : 0);
-      if (editImageFile) payload.append('image', editImageFile);
+      if (editImageFile) {
+        payload.append('image', editImageFile);
+      } else if (editFormData.temperature_type === 'both' && editHotImageFile) {
+        payload.append('image', editHotImageFile);
+      } else if (editFormData.temperature_type === 'both' && editIceImageFile) {
+        payload.append('image', editIceImageFile);
+      }
       if (editHotImageFile) payload.append('hot_image', editHotImageFile);
       if (editIceImageFile) payload.append('ice_image', editIceImageFile);
 
@@ -332,123 +344,142 @@ export default function ProductsPage() {
           <div className="modal-card">
             <h3>Tambah Menu Makanan / Minuman</h3>
             <form onSubmit={handleAddProduct} className="auth-form mt-4">
-              <div className="form-group">
-                <label>Kategori Menu</label>
-                <select name="category_id" value={formData.category_id} onChange={handleChange} required className="input-wrapper">
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                {/* Column 1: Info Produk */}
+                <div>
+                  <div className="form-group">
+                    <label>Kategori Menu</label>
+                    <select name="category_id" value={formData.category_id} onChange={handleChange} required className="input-wrapper">
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div className="form-group">
-                <label>Nama Menu</label>
-                <input type="text" name="name" placeholder="Contoh: Espresso Single" value={formData.name} onChange={handleChange} required />
-              </div>
+                  <div className="form-group">
+                    <label>Nama Menu</label>
+                    <input type="text" name="name" placeholder="Contoh: Espresso Single" value={formData.name} onChange={handleChange} required />
+                  </div>
 
-              <div className="form-group">
-                <label>Pilihan Varian Suhu (Panas / Dingin)</label>
-                <select name="temperature_type" value={formData.temperature_type} onChange={handleChange} className="input-wrapper">
-                  <option value="both">Panas & Dingin (Customer Bisa Pilih)</option>
-                  <option value="hot_only">Hanya Panas (Hot Only)</option>
-                  <option value="ice_only">Hanya Dingin / Es (Ice Only)</option>
-                  <option value="none">Tidak Ada Varian (Makanan / Snack / General)</option>
-                </select>
-              </div>
+                  <div className="form-group">
+                    <label>Harga (Rp)</label>
+                    <input type="number" name="price" placeholder="15000" value={formData.price} onChange={handleChange} required />
+                  </div>
 
-              <div className="form-group">
-                <label>Harga (Rp)</label>
-                <input type="number" name="price" placeholder="15000" value={formData.price} onChange={handleChange} required />
-              </div>
-
-              <div className="form-group">
-                <label>Highlight Status Menu</label>
-                <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
-                    <input type="checkbox" name="is_best_seller" checked={formData.is_best_seller} onChange={handleChange} />
-                    <Flame size={14} className="text-red-500" /> Tampilkan di Best Seller
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
-                    <input type="checkbox" name="is_chef_pick" checked={formData.is_chef_pick} onChange={handleChange} />
-                    <ChefHat size={14} className="text-amber-700" /> Rekomendasi Chef/Barista
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Foto Utama Produk (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveImageTarget('main')}>
-                  <label htmlFor="upload-add-image" style={{ background: activeImageTarget === 'main' ? '#FEE2E2' : '#F4ECE1', border: activeImageTarget === 'main' ? '2px solid #DC2626' : '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
-                    <Upload size={16} /> Pilih File / Paste Utama {activeImageTarget === 'main' && <Target size={14} className="text-red-600 ml-1 inline" />}
-                  </label>
-                  <input id="upload-add-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'main')} style={{ display: 'none' }} />
-                  {imagePreview && (
-                    <img src={imagePreview} alt="Preview Utama" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
-                  )}
-                </div>
-              </div>
-
-              {formData.temperature_type === 'both' && (
-                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Coffee size={14} /> / <Snowflake size={14} /> Varian Khusus Panas & Dingin (Gambar & Nama Berbeda)
-                  </h4>
-
-                  <div className="form-group mb-3">
-                    <label style={{ fontSize: '12px', color: '#9A3412', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Coffee size={14} /> Nama & Gambar Varian Panas (Hot)
-                    </label>
-                    <input
-                      type="text"
-                      name="hot_name"
-                      placeholder="Contoh: Espresso Hot / Single Panas"
-                      value={formData.hot_name}
-                      onChange={handleChange}
-                      style={{ marginBottom: '8px' }}
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('hot')}>
-                      <label htmlFor="upload-add-hot-image" style={{ background: activeImageTarget === 'hot' ? '#FED7AA' : '#FFFFFF', border: activeImageTarget === 'hot' ? '2px solid #C2410C' : '1px dashed #F97316', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#9A3412' }}>
-                        <Upload size={14} /> Upload / Paste Foto Panas {activeImageTarget === 'hot' && <Target size={14} className="text-orange-600 ml-1 inline" />}
-                      </label>
-                      <input id="upload-add-hot-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'hot')} style={{ display: 'none' }} />
-                      {hotImagePreview && (
-                        <img src={hotImagePreview} alt="Preview Hot" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #EA580C' }} />
-                      )}
-                    </div>
+                  <div className="form-group">
+                    <label>Pilihan Varian Suhu (Panas / Dingin)</label>
+                    <select name="temperature_type" value={formData.temperature_type} onChange={handleChange} className="input-wrapper">
+                      <option value="both">Panas & Dingin (Customer Bisa Pilih)</option>
+                      <option value="hot_only">Hanya Panas (Hot Only)</option>
+                      <option value="ice_only">Hanya Dingin / Es (Ice Only)</option>
+                      <option value="none">Tidak Ada Varian (Makanan / Snack / General)</option>
+                    </select>
                   </div>
 
                   <div className="form-group mb-0">
-                    <label style={{ fontSize: '12px', color: '#0369A1', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Snowflake size={14} /> Nama & Gambar Varian Dingin (Ice)
-                    </label>
-                    <input
-                      type="text"
-                      name="ice_name"
-                      placeholder="Contoh: Espresso Ice Blend"
-                      value={formData.ice_name}
-                      onChange={handleChange}
-                      style={{ marginBottom: '8px' }}
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('ice')}>
-                      <label htmlFor="upload-add-ice-image" style={{ background: activeImageTarget === 'ice' ? '#BAE6FD' : '#FFFFFF', border: activeImageTarget === 'ice' ? '2px solid #0284C7' : '1px dashed #0EA5E9', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#0369A1' }}>
-                        <Upload size={14} /> Upload / Paste Foto Dingin {activeImageTarget === 'ice' && <Target size={14} className="text-sky-600 ml-1 inline" />}
-                      </label>
-                      <input id="upload-add-ice-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'ice')} style={{ display: 'none' }} />
-                      {iceImagePreview && (
-                        <img src={iceImagePreview} alt="Preview Ice" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #0284C7' }} />
-                      )}
-                    </div>
+                    <label>Deskripsi</label>
+                    <textarea name="description" placeholder="Penjelasan singkat menu..." value={formData.description} onChange={handleChange} style={{ height: '85px' }} />
                   </div>
                 </div>
-              )}
 
-              <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '-6px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Info size={12} /> Tips: Klik area file target (Utama / Hot / Ice) lalu tekan <strong>Ctrl + V (Paste)</strong> untuk memasukkan gambar Clipboard langsung.
-              </span>
+                {/* Column 2: Foto & Varian Gambar */}
+                <div>
+                  {formData.temperature_type !== 'both' ? (
+                    <div className="form-group">
+                      <label>Foto Produk (Upload / Paste)</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveImageTarget('main')}>
+                        <label htmlFor="upload-add-image" style={{ background: activeImageTarget === 'main' ? '#FEE2E2' : '#F4ECE1', border: activeImageTarget === 'main' ? '2px solid #DC2626' : '1px dashed #D97706', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700, color: '#7C4012' }}>
+                          <Upload size={14} /> Upload / Paste Foto {activeImageTarget === 'main' && <Target size={14} className="text-red-600 ml-1 inline" />}
+                        </label>
+                        <input id="upload-add-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'main')} style={{ display: 'none' }} />
+                        {imagePreview && (
+                          <img src={imagePreview} alt="Preview Utama" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '14px', padding: '14px' }}>
+                      <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Coffee size={14} /> / <Snowflake size={14} /> Foto & Nama Varian Produk (Hot / Ice)
+                      </h4>
 
-              <div className="form-group">
-                <label>Deskripsi</label>
-                <textarea name="description" placeholder="Penjelasan singkat menu..." value={formData.description} onChange={handleChange} />
+                      {/* Varian Panas Box */}
+                      <div
+                        onClick={() => setActiveImageTarget('hot')}
+                        style={{
+                          background: activeImageTarget === 'hot' ? '#FFF3E0' : '#FFFFFF',
+                          border: activeImageTarget === 'hot' ? '2px solid #EA580C' : '1px solid #FED7AA',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          marginBottom: '12px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <label style={{ fontSize: '12px', color: '#9A3412', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <Coffee size={14} /> Nama & Gambar Varian Panas (Hot) {activeImageTarget === 'hot' && <Target size={14} className="text-orange-600 ml-auto" />}
+                        </label>
+                        <input
+                          type="text"
+                          name="hot_name"
+                          placeholder="Contoh: Espresso Hot / Single Panas"
+                          value={formData.hot_name}
+                          onFocus={() => setActiveImageTarget('hot')}
+                          onChange={handleChange}
+                          style={{ marginBottom: '8px', fontSize: '12px', padding: '8px 10px' }}
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <label htmlFor="upload-add-hot-image" style={{ background: '#FED7AA', border: '1px solid #F97316', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, color: '#9A3412' }}>
+                            <Upload size={12} /> Pilih / Paste Foto Panas
+                          </label>
+                          <input id="upload-add-hot-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'hot')} style={{ display: 'none' }} />
+                          {hotImagePreview && (
+                            <img src={hotImagePreview} alt="Preview Hot" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #EA580C' }} />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Varian Dingin Box */}
+                      <div
+                        onClick={() => setActiveImageTarget('ice')}
+                        style={{
+                          background: activeImageTarget === 'ice' ? '#E0F2FE' : '#FFFFFF',
+                          border: activeImageTarget === 'ice' ? '2px solid #0284C7' : '1px solid #BAE6FD',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <label style={{ fontSize: '12px', color: '#0369A1', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <Snowflake size={14} /> Nama & Gambar Varian Dingin (Ice) {activeImageTarget === 'ice' && <Target size={14} className="text-sky-600 ml-auto" />}
+                        </label>
+                        <input
+                          type="text"
+                          name="ice_name"
+                          placeholder="Contoh: Espresso Ice Blend"
+                          value={formData.ice_name}
+                          onFocus={() => setActiveImageTarget('ice')}
+                          onChange={handleChange}
+                          style={{ marginBottom: '8px', fontSize: '12px', padding: '8px 10px' }}
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <label htmlFor="upload-add-ice-image" style={{ background: '#BAE6FD', border: '1px solid #0EA5E9', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, color: '#0369A1' }}>
+                            <Upload size={12} /> Pilih / Paste Foto Dingin
+                          </label>
+                          <input id="upload-add-ice-image" type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'ice')} style={{ display: 'none' }} />
+                          {iceImagePreview && (
+                            <img src={iceImagePreview} alt="Preview Ice" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #0284C7' }} />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1.4 }}>
+                    <Info size={12} className="shrink-0" /> Tips: Klik kotak varian (Hot/Ice) lalu tekan <strong>Ctrl + V (Paste)</strong> untuk memasukkan gambar langsung.
+                  </span>
+                </div>
               </div>
 
               <div className="modal-actions">
@@ -465,123 +496,142 @@ export default function ProductsPage() {
           <div className="modal-card">
             <h3>Edit Menu Makanan / Minuman</h3>
             <form onSubmit={handleUpdateProduct} className="auth-form mt-4">
-              <div className="form-group">
-                <label>Kategori Menu</label>
-                <select name="category_id" value={editFormData.category_id} onChange={handleEditChange} required className="input-wrapper">
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                {/* Column 1: Info Produk */}
+                <div>
+                  <div className="form-group">
+                    <label>Kategori Menu</label>
+                    <select name="category_id" value={editFormData.category_id} onChange={handleEditChange} required className="input-wrapper">
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div className="form-group">
-                <label>Nama Menu</label>
-                <input type="text" name="name" value={editFormData.name} onChange={handleEditChange} required />
-              </div>
+                  <div className="form-group">
+                    <label>Nama Menu</label>
+                    <input type="text" name="name" value={editFormData.name} onChange={handleEditChange} required />
+                  </div>
 
-              <div className="form-group">
-                <label>Pilihan Varian Suhu (Panas / Dingin)</label>
-                <select name="temperature_type" value={editFormData.temperature_type} onChange={handleEditChange} className="input-wrapper">
-                  <option value="both">Panas & Dingin (Customer Bisa Pilih)</option>
-                  <option value="hot_only">Hanya Panas (Hot Only)</option>
-                  <option value="ice_only">Hanya Dingin / Es (Ice Only)</option>
-                  <option value="none">Tidak Ada Varian (Makanan / Snack / General)</option>
-                </select>
-              </div>
+                  <div className="form-group">
+                    <label>Harga (Rp)</label>
+                    <input type="number" name="price" value={editFormData.price} onChange={handleEditChange} required />
+                  </div>
 
-              <div className="form-group">
-                <label>Harga (Rp)</label>
-                <input type="number" name="price" value={editFormData.price} onChange={handleEditChange} required />
-              </div>
-
-              <div className="form-group">
-                <label>Highlight Status Menu</label>
-                <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
-                    <input type="checkbox" name="is_best_seller" checked={editFormData.is_best_seller} onChange={handleEditChange} />
-                    <Flame size={14} className="text-red-500" /> Tampilkan di Best Seller
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', color: '#2D1A10' }}>
-                    <input type="checkbox" name="is_chef_pick" checked={editFormData.is_chef_pick} onChange={handleEditChange} />
-                    <ChefHat size={14} className="text-amber-700" /> Rekomendasi Chef/Barista
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Foto Produk Utama (Bisa Upload atau Paste / Ctrl+V Gambar)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveImageTarget('main')}>
-                  <label htmlFor="upload-edit-image" style={{ background: activeImageTarget === 'main' ? '#FEE2E2' : '#F4ECE1', border: activeImageTarget === 'main' ? '2px solid #DC2626' : '1px dashed #D97706', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
-                    <Upload size={16} /> Ganti File / Paste Utama {activeImageTarget === 'main' && <Target size={14} className="text-red-600 ml-1 inline" />}
-                  </label>
-                  <input id="upload-edit-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'main')} style={{ display: 'none' }} />
-                  {editImagePreview && (
-                    <img src={editImagePreview} alt="Preview Edit Utama" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
-                  )}
-                </div>
-              </div>
-
-              {editFormData.temperature_type === 'both' && (
-                <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Coffee size={14} /> / <Snowflake size={14} /> Varian Khusus Panas & Dingin (Gambar & Nama Berbeda)
-                  </h4>
-
-                  <div className="form-group mb-3">
-                    <label style={{ fontSize: '12px', color: '#9A3412', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Coffee size={14} /> Nama & Gambar Varian Panas (Hot)
-                    </label>
-                    <input
-                      type="text"
-                      name="hot_name"
-                      placeholder="Contoh: Espresso Hot / Single Panas"
-                      value={editFormData.hot_name}
-                      onChange={handleEditChange}
-                      style={{ marginBottom: '8px' }}
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('hot')}>
-                      <label htmlFor="upload-edit-hot-image" style={{ background: activeImageTarget === 'hot' ? '#FED7AA' : '#FFFFFF', border: activeImageTarget === 'hot' ? '2px solid #C2410C' : '1px dashed #F97316', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#9A3412' }}>
-                        <Upload size={14} /> Upload / Paste Foto Panas {activeImageTarget === 'hot' && <Target size={14} className="text-orange-600 ml-1 inline" />}
-                      </label>
-                      <input id="upload-edit-hot-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'hot')} style={{ display: 'none' }} />
-                      {editHotImagePreview && (
-                        <img src={editHotImagePreview} alt="Preview Edit Hot" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #EA580C' }} />
-                      )}
-                    </div>
+                  <div className="form-group">
+                    <label>Pilihan Varian Suhu (Panas / Dingin)</label>
+                    <select name="temperature_type" value={editFormData.temperature_type} onChange={handleEditChange} className="input-wrapper">
+                      <option value="both">Panas & Dingin (Customer Bisa Pilih)</option>
+                      <option value="hot_only">Hanya Panas (Hot Only)</option>
+                      <option value="ice_only">Hanya Dingin / Es (Ice Only)</option>
+                      <option value="none">Tidak Ada Varian (Makanan / Snack / General)</option>
+                    </select>
                   </div>
 
                   <div className="form-group mb-0">
-                    <label style={{ fontSize: '12px', color: '#0369A1', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Snowflake size={14} /> Nama & Gambar Varian Dingin (Ice)
-                    </label>
-                    <input
-                      type="text"
-                      name="ice_name"
-                      placeholder="Contoh: Espresso Ice Blend"
-                      value={editFormData.ice_name}
-                      onChange={handleEditChange}
-                      style={{ marginBottom: '8px' }}
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => setActiveImageTarget('ice')}>
-                      <label htmlFor="upload-edit-ice-image" style={{ background: activeImageTarget === 'ice' ? '#BAE6FD' : '#FFFFFF', border: activeImageTarget === 'ice' ? '2px solid #0284C7' : '1px dashed #0EA5E9', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: '#0369A1' }}>
-                        <Upload size={14} /> Upload / Paste Foto Dingin {activeImageTarget === 'ice' && <Target size={14} className="text-sky-600 ml-1 inline" />}
-                      </label>
-                      <input id="upload-edit-ice-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'ice')} style={{ display: 'none' }} />
-                      {editIceImagePreview && (
-                        <img src={editIceImagePreview} alt="Preview Edit Ice" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #0284C7' }} />
-                      )}
-                    </div>
+                    <label>Deskripsi</label>
+                    <textarea name="description" value={editFormData.description} onChange={handleEditChange} style={{ height: '85px' }} />
                   </div>
                 </div>
-              )}
 
-              <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '-6px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Info size={12} /> Tips: Klik area file target (Utama / Hot / Ice) lalu tekan <strong>Ctrl + V (Paste)</strong> untuk memasukkan gambar Clipboard langsung.
-              </span>
+                {/* Column 2: Foto & Varian Gambar */}
+                <div>
+                  {editFormData.temperature_type !== 'both' ? (
+                    <div className="form-group">
+                      <label>Foto Produk (Upload / Paste)</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveImageTarget('main')}>
+                        <label htmlFor="upload-edit-image" style={{ background: activeImageTarget === 'main' ? '#FEE2E2' : '#F4ECE1', border: activeImageTarget === 'main' ? '2px solid #DC2626' : '1px dashed #D97706', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700, color: '#7C4012' }}>
+                          <Upload size={14} /> Ganti Foto {activeImageTarget === 'main' && <Target size={14} className="text-red-600 ml-1 inline" />}
+                        </label>
+                        <input id="upload-edit-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'main')} style={{ display: 'none' }} />
+                        {editImagePreview && (
+                          <img src={editImagePreview} alt="Preview Edit Utama" style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #D97706' }} />
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '14px', padding: '14px' }}>
+                      <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#92400E', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Coffee size={14} /> / <Snowflake size={14} /> Foto & Nama Varian Produk (Hot / Ice)
+                      </h4>
 
-              <div className="form-group">
-                <label>Deskripsi</label>
-                <textarea name="description" value={editFormData.description} onChange={handleEditChange} />
+                      {/* Varian Panas Box */}
+                      <div
+                        onClick={() => setActiveImageTarget('hot')}
+                        style={{
+                          background: activeImageTarget === 'hot' ? '#FFF3E0' : '#FFFFFF',
+                          border: activeImageTarget === 'hot' ? '2px solid #EA580C' : '1px solid #FED7AA',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          marginBottom: '12px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <label style={{ fontSize: '12px', color: '#9A3412', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <Coffee size={14} /> Nama & Gambar Varian Panas (Hot) {activeImageTarget === 'hot' && <Target size={14} className="text-orange-600 ml-auto" />}
+                        </label>
+                        <input
+                          type="text"
+                          name="hot_name"
+                          placeholder="Contoh: Espresso Hot / Single Panas"
+                          value={editFormData.hot_name}
+                          onFocus={() => setActiveImageTarget('hot')}
+                          onChange={handleEditChange}
+                          style={{ marginBottom: '8px', fontSize: '12px', padding: '8px 10px' }}
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <label htmlFor="upload-edit-hot-image" style={{ background: '#FED7AA', border: '1px solid #F97316', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, color: '#9A3412' }}>
+                            <Upload size={12} /> Ganti / Paste Foto Panas
+                          </label>
+                          <input id="upload-edit-hot-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'hot')} style={{ display: 'none' }} />
+                          {editHotImagePreview && (
+                            <img src={editHotImagePreview} alt="Preview Edit Hot" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #EA580C' }} />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Varian Dingin Box */}
+                      <div
+                        onClick={() => setActiveImageTarget('ice')}
+                        style={{
+                          background: activeImageTarget === 'ice' ? '#E0F2FE' : '#FFFFFF',
+                          border: activeImageTarget === 'ice' ? '2px solid #0284C7' : '1px solid #BAE6FD',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <label style={{ fontSize: '12px', color: '#0369A1', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <Snowflake size={14} /> Nama & Gambar Varian Dingin (Ice) {activeImageTarget === 'ice' && <Target size={14} className="text-sky-600 ml-auto" />}
+                        </label>
+                        <input
+                          type="text"
+                          name="ice_name"
+                          placeholder="Contoh: Espresso Ice Blend"
+                          value={editFormData.ice_name}
+                          onFocus={() => setActiveImageTarget('ice')}
+                          onChange={handleEditChange}
+                          style={{ marginBottom: '8px', fontSize: '12px', padding: '8px 10px' }}
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <label htmlFor="upload-edit-ice-image" style={{ background: '#BAE6FD', border: '1px solid #0EA5E9', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, color: '#0369A1' }}>
+                            <Upload size={12} /> Ganti / Paste Foto Dingin
+                          </label>
+                          <input id="upload-edit-ice-image" type="file" accept="image/*" onChange={(e) => handleEditFileChange(e, 'ice')} style={{ display: 'none' }} />
+                          {editIceImagePreview && (
+                            <img src={editIceImagePreview} alt="Preview Edit Ice" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '2px solid #0284C7' }} />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <span style={{ fontSize: '11px', color: '#7A695C', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '4px', lineHeight: 1.4 }}>
+                    <Info size={12} className="shrink-0" /> Tips: Klik kotak varian (Hot/Ice) lalu tekan <strong>Ctrl + V (Paste)</strong> untuk memasukkan gambar.
+                  </span>
+                </div>
               </div>
 
               <div className="modal-actions">

@@ -5,13 +5,15 @@ import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 
-import MenuPage from './pages/customer/MenuPage';
+import WebLandingPage from './pages/customer/WebLandingPage';
+import QuickOrderPage from './pages/customer/QuickOrderPage';
 
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import OrdersPage from './pages/admin/OrdersPage';
 import TablesPage from './pages/admin/TablesPage';
 import ProductsPage from './pages/admin/ProductsPage';
+import HighlightsPage from './pages/admin/HighlightsPage';
 import CategoriesPage from './pages/admin/CategoriesPage';
 
 export default function App() {
@@ -19,10 +21,11 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/menu" element={<MenuPage />} />
-          <Route path="/scan" element={<MenuPage />} />
-
-          <Route path="/" element={<Navigate to="/auth/login" replace />} />
+          <Route path="/" element={<WebLandingPage />} />
+          <Route path="/web" element={<WebLandingPage />} />
+          <Route path="/quick-order" element={<QuickOrderPage />} />
+          <Route path="/scan" element={<QuickOrderPage />} />
+          <Route path="/menu" element={<QuickOrderPage />} />
 
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
@@ -32,6 +35,7 @@ export default function App() {
             <Route path="orders" element={<OrdersPage />} />
             <Route path="tables" element={<TablesPage />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="highlights" element={<HighlightsPage />} />
             <Route path="categories" element={<CategoriesPage />} />
           </Route>
         </Routes>

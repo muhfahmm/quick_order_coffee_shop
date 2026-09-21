@@ -11,7 +11,8 @@ import {
   LogOut,
   Search,
   ExternalLink,
-  Store
+  Store,
+  Flame
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -27,6 +28,7 @@ export default function AdminLayout() {
     { label: 'Live Orders', path: '/admin/orders', icon: ShoppingBag, badge: 'Live' },
     { label: 'Kelola Meja & QR', path: '/admin/tables', icon: QrCode },
     { label: 'Daftar Menu Produk', path: '/admin/products', icon: UtensilsCrossed },
+    { label: 'Highlight Menu', path: '/admin/highlights', icon: Flame },
     { label: 'Kategori Menu', path: '/admin/categories', icon: Layers },
   ];
 
