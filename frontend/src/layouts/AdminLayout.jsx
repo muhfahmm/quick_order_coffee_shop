@@ -12,7 +12,8 @@ import {
   Search,
   ExternalLink,
   Store,
-  Flame
+  Flame,
+  Home
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -84,10 +85,16 @@ export default function AdminLayout() {
             <input type="text" placeholder="Cari kode pesanan, meja, atau menu..." />
           </div>
 
-          <div className="navbar-actions">
+          <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Link to="/menu" target="_blank" className="btn-customer-redirect">
               <Store size={18} />
               <span>Halaman Order Customer</span>
+              <ExternalLink size={14} />
+            </Link>
+
+            <Link to="/web" target="_blank" className="btn-customer-redirect" style={{ background: '#FAF6F0', color: '#7C4012', border: '1px solid #E8DFD5' }}>
+              <Home size={18} />
+              <span>Web Resto User</span>
               <ExternalLink size={14} />
             </Link>
           </div>

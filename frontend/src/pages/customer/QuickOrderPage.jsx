@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, ShoppingBag, Plus, Check, Send, MapPin, X, Snowflake, AlertTriangle, Search, ChevronUp, ChevronDown, Trash2, ArrowRight } from 'lucide-react';
+import { Coffee, ShoppingBag, Plus, Check, Send, MapPin, X, Snowflake, AlertTriangle, Search, ChevronUp, ChevronDown, Trash2, ArrowRight, Home } from 'lucide-react';
 import { productService, categoryService, orderService, tableService } from '../../services/api';
 
 export default function QuickOrderPage() {
@@ -48,17 +48,11 @@ export default function QuickOrderPage() {
     return localStorage.getItem('checkout_table') || '';
   });
 
-  // Sync cart to localStorage whenever cart changes
-  useEffect(() => {
-    localStorage.setItem('checkout_cart', JSON.stringify(cart));
-  }, [cart]);
-
-  // Sync tableNumber to localStorage whenever tableNumber changes
-  useEffect(() => {
-    if (tableNumber) {
-      localStorage.setItem('checkout_table', tableNumber);
-    }
-  }, [tableNumber]);
+  // Keep localStorage continuously updated whenever cart state mutates
+  const saveCartToStorage = (newCart) => {
+    setCart(newCart);
+    localStorage.setItem('checkout_cart', JSON.stringify(newCart));
+  };
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [variantProduct, setVariantProduct] = useState(null);
   const [isCartExpanded, setIsCartExpanded] = useState(false);
@@ -126,31 +120,34 @@ export default function QuickOrderPage() {
         (item) => item.product_id === product.id && item.variant_type === variantType
       );
 
+      let newCart;
       if (existing) {
-        return prevCart.map((item) =>
+        newCart = prevCart.map((item) =>
           item.product_id === product.id && item.variant_type === variantType
             ? { ...item, quantity: item.quantity + 1, image: finalImage || item.image }
             : item
         );
+      } else {
+        newCart = [
+          ...prevCart,
+          {
+            product_id: product.id,
+            name: finalName,
+            variant_type: variantType,
+            price: finalPrice,
+            image: finalImage,
+            quantity: 1
+          }
+        ];
       }
-
-      return [
-        ...prevCart,
-        {
-          product_id: product.id,
-          name: finalName,
-          variant_type: variantType,
-          price: finalPrice,
-          image: finalImage,
-          quantity: 1
-        }
-      ];
+      localStorage.setItem('checkout_cart', JSON.stringify(newCart));
+      return newCart;
     });
   };
 
   const updateCartQuantity = (productId, variantType, delta) => {
     setCart((prevCart) => {
-      return prevCart
+      const newCart = prevCart
         .map((item) => {
           if (item.product_id === productId && item.variant_type === variantType) {
             const newQty = item.quantity + delta;
@@ -159,6 +156,9 @@ export default function QuickOrderPage() {
           return item;
         })
         .filter(Boolean);
+
+      localStorage.setItem('checkout_cart', JSON.stringify(newCart));
+      return newCart;
     });
   };
 
@@ -212,47 +212,72 @@ export default function QuickOrderPage() {
         style={{
           background: '#FFFFFF',
           borderBottom: '1px solid #E8DFD5',
-          padding: '14px 20px',
+          padding: '12px 16px',
           position: 'sticky',
           top: 0,
           zIndex: 10
         }}
       >
-        <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '38px', height: '38px', background: 'linear-gradient(135deg, #7C4012, #D97706)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-              <Coffee size={20} />
+        <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+            <div style={{ width: '36px', height: '36px', minWidth: '36px', background: 'linear-gradient(135deg, #7C4012, #D97706)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+              <Coffee size={18} />
             </div>
-            <div>
-              <h1 style={{ fontSize: '16px', fontWeight: 800, color: '#2D1A10', margin: 0 }}>
-                Quick Order Meja
+            <div style={{ overflow: 'hidden' }}>
+              <h1 style={{ fontSize: '15px', fontWeight: 800, color: '#2D1A10', margin: 0, whiteSpace: 'nowrap' }}>
+                Quick Order
               </h1>
-              <span style={{ fontSize: '11px', color: '#7A695C', fontWeight: 600 }}>
-                Pesan Cepat Resto & Coffee
+              <span style={{ fontSize: '11px', color: '#7A695C', fontWeight: 600, display: 'block', whiteSpace: 'nowrap' }}>
+                Pesan Cepat Resto
               </span>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsTableModalOpen(true)}
-            style={{
-              background: tableNumber ? '#F4ECE1' : 'linear-gradient(135deg, #7C4012, #D97706)',
-              color: tableNumber ? '#7C4012' : '#FFFFFF',
-              padding: '7px 14px',
-              borderRadius: '20px',
-              border: tableNumber ? '1px solid #E8DFD5' : 'none',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}
-          >
-            <MapPin size={14} />
-            {tableNumber ? tableNumber : 'Pilih Meja'}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={() => navigate('/web')}
+              style={{
+                background: '#FAF6F0',
+                color: '#7C4012',
+                padding: '6px 10px',
+                borderRadius: '16px',
+                border: '1px solid #E8DFD5',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <Home size={13} />
+              Web Resto
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsTableModalOpen(true)}
+              style={{
+                background: tableNumber ? '#F4ECE1' : 'linear-gradient(135deg, #7C4012, #D97706)',
+                color: tableNumber ? '#7C4012' : '#FFFFFF',
+                padding: '6px 12px',
+                borderRadius: '16px',
+                border: tableNumber ? '1px solid #E8DFD5' : 'none',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <MapPin size={13} />
+              {tableNumber ? tableNumber : 'Pilih Meja'}
+            </button>
+          </div>
         </div>
       </header>
 

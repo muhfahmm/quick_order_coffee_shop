@@ -115,6 +115,7 @@ export default function CheckoutPage() {
       });
 
       setOrderSuccess(res.data.data);
+      setCart([]);
       localStorage.removeItem('checkout_cart');
       localStorage.removeItem('checkout_table');
     } catch (err) {
