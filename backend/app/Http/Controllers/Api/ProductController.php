@@ -23,14 +23,18 @@ class ProductController extends Controller
     {
         $request->validate([
             'category_id' => 'required|exists:tb_categories,id',
-            'name' => 'required|string|max:150',
+            'name' => 'nullable|string|max:150',
             'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'image' => 'nullable',
             'hot_name' => 'nullable|string|max:150',
             'hot_image' => 'nullable',
+            'hot_price' => 'nullable|numeric|min:0',
+            'hot_available' => 'boolean',
             'ice_name' => 'nullable|string|max:150',
             'ice_image' => 'nullable',
+            'ice_price' => 'nullable|numeric|min:0',
+            'ice_available' => 'boolean',
             'is_available' => 'boolean',
             'temperature_type' => 'nullable|in:both,hot_only,ice_only,none',
             'is_best_seller' => 'nullable|boolean',
@@ -61,16 +65,23 @@ class ProductController extends Controller
             $iceImagePath = $request->ice_image;
         }
 
+        $name = $request->name ?: ($request->hot_name ?: ($request->ice_name ?: 'Produk'));
+        $price = $request->price ?: ($request->hot_price ?: ($request->ice_price ?: 0));
+
         $product = Product::create([
             'category_id' => $request->category_id,
-            'name' => $request->name,
+            'name' => $name,
             'description' => $request->description,
-            'price' => $request->price,
+            'price' => $price,
             'image' => $imagePath,
             'hot_name' => $request->hot_name,
             'hot_image' => $hotImagePath,
+            'hot_price' => $request->hot_price,
+            'hot_available' => $request->hot_available ?? true,
             'ice_name' => $request->ice_name,
             'ice_image' => $iceImagePath,
+            'ice_price' => $request->ice_price,
+            'ice_available' => $request->ice_available ?? true,
             'is_available' => $request->is_available ?? true,
             'temperature_type' => $request->temperature_type ?? 'both',
             'is_best_seller' => filter_var($request->is_best_seller, FILTER_VALIDATE_BOOLEAN),
@@ -90,21 +101,32 @@ class ProductController extends Controller
 
         $request->validate([
             'category_id' => 'sometimes|required|exists:tb_categories,id',
-            'name' => 'sometimes|required|string|max:150',
+            'name' => 'nullable|string|max:150',
             'description' => 'nullable|string',
-            'price' => 'sometimes|required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'image' => 'nullable',
             'hot_name' => 'nullable|string|max:150',
             'hot_image' => 'nullable',
+            'hot_price' => 'nullable|numeric|min:0',
+            'hot_available' => 'boolean',
             'ice_name' => 'nullable|string|max:150',
             'ice_image' => 'nullable',
+            'ice_price' => 'nullable|numeric|min:0',
+            'ice_available' => 'boolean',
             'is_available' => 'boolean',
             'temperature_type' => 'nullable|in:both,hot_only,ice_only,none',
             'is_best_seller' => 'nullable|boolean',
             'is_chef_pick' => 'nullable|boolean'
         ]);
 
-        $data = $request->only(['category_id', 'name', 'description', 'price', 'hot_name', 'ice_name', 'is_available', 'temperature_type', 'is_best_seller', 'is_chef_pick']);
+        $data = $request->only(['category_id', 'name', 'description', 'price', 'hot_name', 'hot_price', 'hot_available', 'ice_name', 'ice_price', 'ice_available', 'is_available', 'temperature_type', 'is_best_seller', 'is_chef_pick']);
+
+        if (empty($data['name'])) {
+            $data['name'] = $request->hot_name ?: ($request->ice_name ?: $product->name);
+        }
+        if (!isset($data['price']) || $data['price'] === null || $data['price'] === '') {
+            $data['price'] = $request->hot_price ?: ($request->ice_price ?: $product->price);
+        }
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');

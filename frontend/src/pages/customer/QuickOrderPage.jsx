@@ -91,8 +91,10 @@ export default function QuickOrderPage() {
     }
   };
 
-  const addToCartWithVariant = (product, variantType, customVariantName = null) => {
-    const finalName = customVariantName || product.name;
+  const addToCartWithVariant = (product, variantType, customName, customPrice) => {
+    const finalName = customName || (variantType ? `${product.name} (${variantType})` : product.name);
+    const finalPrice = customPrice != null && customPrice !== '' ? Number(customPrice) : Number(product.price);
+
     setCart((prevCart) => {
       const existing = prevCart.find(
         (item) => item.product_id === product.id && item.variant_type === variantType
@@ -112,7 +114,7 @@ export default function QuickOrderPage() {
           product_id: product.id,
           name: finalName,
           variant_type: variantType,
-          price: Number(product.price),
+          price: finalPrice,
           quantity: 1
         }
       ];
@@ -370,20 +372,66 @@ export default function QuickOrderPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <button
                 type="button"
-                onClick={() => { addToCartWithVariant(variantProduct, 'Panas', variantProduct.hot_name || null); setVariantProduct(null); }}
-                style={{ padding: '12px 8px', borderRadius: '14px', border: '1.5px solid #FED7AA', background: '#FFF8F0', color: '#9A3412', fontWeight: 800, fontSize: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                disabled={variantProduct.hot_available === false}
+                onClick={() => {
+                  if (variantProduct.hot_available !== false) {
+                    addToCartWithVariant(variantProduct, 'Panas', variantProduct.hot_name || null, variantProduct.hot_price);
+                    setVariantProduct(null);
+                  }
+                }}
+                style={{
+                  padding: '12px 8px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #FED7AA',
+                  background: variantProduct.hot_available === false ? '#F3F4F6' : '#FFF8F0',
+                  color: variantProduct.hot_available === false ? '#9CA3AF' : '#9A3412',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  cursor: variantProduct.hot_available === false ? 'not-allowed' : 'pointer',
+                  opacity: variantProduct.hot_available === false ? 0.6 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
               >
-                {variantProduct.hot_image ? <img src={variantProduct.hot_image} alt="Hot" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Coffee size={24} style={{ color: '#EA580C' }} />}
+                {variantProduct.hot_image ? <img src={variantProduct.hot_image} alt="Hot" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Coffee size={24} style={{ color: variantProduct.hot_available === false ? '#9CA3AF' : '#EA580C' }} />}
                 <span>{variantProduct.hot_name || 'Panas (Hot)'}</span>
+                <span style={{ fontSize: '11px', color: variantProduct.hot_available === false ? '#EF4444' : '#EA580C', fontWeight: 700 }}>
+                  {variantProduct.hot_available === false ? 'Stok Habis' : `Rp ${Number(variantProduct.hot_price || variantProduct.price).toLocaleString('id-ID')}`}
+                </span>
               </button>
 
               <button
                 type="button"
-                onClick={() => { addToCartWithVariant(variantProduct, 'Dingin', variantProduct.ice_name || null); setVariantProduct(null); }}
-                style={{ padding: '12px 8px', borderRadius: '14px', border: '1.5px solid #BAE6FD', background: '#F0F9FF', color: '#0369A1', fontWeight: 800, fontSize: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                disabled={variantProduct.ice_available === false}
+                onClick={() => {
+                  if (variantProduct.ice_available !== false) {
+                    addToCartWithVariant(variantProduct, 'Dingin', variantProduct.ice_name || null, variantProduct.ice_price);
+                    setVariantProduct(null);
+                  }
+                }}
+                style={{
+                  padding: '12px 8px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #BAE6FD',
+                  background: variantProduct.ice_available === false ? '#F3F4F6' : '#F0F9FF',
+                  color: variantProduct.ice_available === false ? '#9CA3AF' : '#0369A1',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  cursor: variantProduct.ice_available === false ? 'not-allowed' : 'pointer',
+                  opacity: variantProduct.ice_available === false ? 0.6 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
               >
-                {variantProduct.ice_image ? <img src={variantProduct.ice_image} alt="Ice" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Snowflake size={24} style={{ color: '#0284C7' }} />}
+                {variantProduct.ice_image ? <img src={variantProduct.ice_image} alt="Ice" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Snowflake size={24} style={{ color: variantProduct.ice_available === false ? '#9CA3AF' : '#0284C7' }} />}
                 <span>{variantProduct.ice_name || 'Dingin (Ice)'}</span>
+                <span style={{ fontSize: '11px', color: variantProduct.ice_available === false ? '#EF4444' : '#0284C7', fontWeight: 700 }}>
+                  {variantProduct.ice_available === false ? 'Stok Habis' : `Rp ${Number(variantProduct.ice_price || variantProduct.price).toLocaleString('id-ID')}`}
+                </span>
               </button>
             </div>
           </div>
