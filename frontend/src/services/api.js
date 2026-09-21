@@ -34,8 +34,11 @@ export const productService = {
 
 export const categoryService = {
   getAll: () => api.get('/categories'),
-  create: (data) => api.post('/categories', data)
+  create: (data) => api.post('/categories', data),
+  update: (id, data) => api.put(`/categories/${id}`, data),
+  delete: (id) => api.delete(`/categories/${id}`)
 };
+
 
 export const tableService = {
   getAll: () => api.get('/tables'),

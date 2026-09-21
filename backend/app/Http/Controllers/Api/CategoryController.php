@@ -38,4 +38,34 @@ class CategoryController extends Controller
             'data' => $category
         ], 201);
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+        ]);
+
+        $category = Category::findOrFail($id);
+        $category->update([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Kategori menu berhasil diperbarui',
+            'data' => $category
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $category = Category::findOrFail($id);
+        $category->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Kategori menu berhasil dihapus'
+        ]);
+    }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2 } from 'lucide-react';
+import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2, Edit3 } from 'lucide-react';
 import { tableService } from '../../services/api';
 
 export default function TablesPage() {
@@ -29,6 +29,16 @@ export default function TablesPage() {
     } catch (err) {
       console.error('Error adding table:', err);
       alert(err.response?.data?.message || 'Gagal menyimpan data meja ke database');
+    }
+  };
+
+  const handleToggleStatus = async (tbl) => {
+    const nextStatus = tbl.status === 'occupied' ? 'available' : 'occupied';
+    try {
+      await tableService.updateStatus(tbl.id, nextStatus);
+      fetchTables();
+    } catch (err) {
+      console.error('Error updating table status:', err);
     }
   };
 
@@ -71,7 +81,7 @@ export default function TablesPage() {
               />
             </div>
             <button type="submit" className="btn-primary-auth">
-              <QrCode size={18} /> Simpan & Generate QR Code
+              <QrCode size={18} /> Simpan Ke Database
             </button>
           </form>
         </div>
@@ -85,12 +95,17 @@ export default function TablesPage() {
                 <div key={tbl.id} className="table-qr-card">
                   <div className="table-card-header">
                     <span className="table-name">{tbl.table_number}</span>
-                    <div className="flex items-center gap-2">
-                      <span className={`status-pill ${tbl.status === 'occupied' ? 'processing' : 'completed'}`}>
+                    <div className="action-buttons">
+                      <button
+                        onClick={() => handleToggleStatus(tbl)}
+                        className={`status-pill ${tbl.status === 'occupied' ? 'processing' : 'completed'}`}
+                        title="Klik untuk ubah status meja"
+                        style={{ cursor: 'pointer' }}
+                      >
                         {tbl.status === 'occupied' ? 'Terisi' : 'Kosong'}
-                      </span>
-                      <button onClick={() => handleDeleteTable(tbl.id)} className="btn-icon danger p-1" title="Hapus Meja">
-                        <Trash2 size={14} />
+                      </button>
+                      <button onClick={() => handleDeleteTable(tbl.id)} className="btn-icon danger" title="Hapus Meja">
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>

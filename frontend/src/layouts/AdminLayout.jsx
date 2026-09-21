@@ -65,7 +65,6 @@ export default function AdminLayout() {
 
         <div className="sidebar-footer">
           <div className="user-profile-card">
-            <img src={user.avatar} alt="Admin" className="user-avatar" />
             <div className="user-details">
               <h4>{user.name}</h4>
               <span>{user.role.toUpperCase()}</span>
@@ -75,6 +74,7 @@ export default function AdminLayout() {
             <LogOut size={18} />
           </button>
         </div>
+
       </aside>
 
       {/* Main Content Area */}

@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Coffee, Check, X, Inbox } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Coffee, Check, X, Inbox } from 'lucide-react';
 import { productService, categoryService } from '../../services/api';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showModal, setShowModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const [formData, setFormData] = useState({
+    category_id: '',
+    name: '',
+    description: '',
+    price: '',
+    is_available: true
+  });
+
+  const [editFormData, setEditFormData] = useState({
     category_id: '',
     name: '',
     description: '',
@@ -42,15 +51,43 @@ export default function ProductsPage() {
     setFormData({ ...formData, [e.target.name]: val });
   };
 
+  const handleEditChange = (e) => {
+    const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setEditFormData({ ...editFormData, [e.target.name]: val });
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     try {
       await productService.create(formData);
-      setShowModal(false);
+      setShowAddModal(false);
       setFormData({ category_id: categories[0]?.id || '', name: '', description: '', price: '', is_available: true });
       fetchProductsAndCategories();
     } catch (error) {
       alert(error.response?.data?.message || 'Gagal menyimpan menu ke database.');
+    }
+  };
+
+  const handleOpenEdit = (prod) => {
+    setEditingProduct(prod);
+    setEditFormData({
+      category_id: prod.category_id,
+      name: prod.name,
+      description: prod.description || '',
+      price: prod.price,
+      is_available: prod.is_available
+    });
+  };
+
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    try {
+      await productService.update(editingProduct.id, editFormData);
+      setEditingProduct(null);
+      fetchProductsAndCategories();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Gagal memperbarui menu produk.');
     }
   };
 
@@ -85,13 +122,13 @@ export default function ProductsPage() {
           <h1 className="page-title">Daftar Produk & Menu Kopi</h1>
           <p className="page-subtitle">Data produk langsung tersimpan & terambil dari database MySQL (`tb_products`)</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-action-primary">
-          <Plus size={16} /> Tambah Menu Ke Database
+        <button onClick={() => setShowAddModal(true)} className="btn-action-primary">
+          <Plus size={16} /> Tambah Produk
         </button>
       </div>
 
       {/* Modal Tambah Produk Baru */}
-      {showModal && (
+      {showAddModal && (
         <div className="modal-overlay">
           <div className="modal-card">
             <h3>Tambah Menu Makanan / Minuman</h3>
@@ -121,8 +158,47 @@ export default function ProductsPage() {
               </div>
 
               <div className="modal-actions">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Batal</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary">Batal</button>
                 <button type="submit" className="btn-primary-auth">Simpan Ke MySQL</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edit Produk */}
+      {editingProduct && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <h3>Edit Menu Makanan / Minuman</h3>
+            <form onSubmit={handleUpdateProduct} className="auth-form mt-4">
+              <div className="form-group">
+                <label>Kategori Menu</label>
+                <select name="category_id" value={editFormData.category_id} onChange={handleEditChange} required className="input-wrapper">
+                  {categories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Nama Menu</label>
+                <input type="text" name="name" value={editFormData.name} onChange={handleEditChange} required />
+              </div>
+
+              <div className="form-group">
+                <label>Harga (Rp)</label>
+                <input type="number" name="price" value={editFormData.price} onChange={handleEditChange} required />
+              </div>
+
+              <div className="form-group">
+                <label>Deskripsi</label>
+                <textarea name="description" value={editFormData.description} onChange={handleEditChange} />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setEditingProduct(null)} className="btn-secondary">Batal</button>
+                <button type="submit" className="btn-primary-auth">Simpan Perubahan</button>
               </div>
             </form>
           </div>
@@ -158,7 +234,7 @@ export default function ProductsPage() {
                 <tr key={prod.id}>
                   <td className="font-semibold">
                     <div className="product-title-cell">
-                      <Coffee size={18} className="text-amber-500" />
+                      <Coffee size={18} className="text-amber-700" />
                       <span>{prod.name}</span>
                     </div>
                   </td>
@@ -175,6 +251,7 @@ export default function ProductsPage() {
                   </td>
                   <td>
                     <div className="action-buttons">
+                      <button onClick={() => handleOpenEdit(prod)} className="btn-icon" title="Edit Produk"><Edit3 size={16} /></button>
                       <button onClick={() => handleDelete(prod.id)} className="btn-icon danger" title="Hapus Dari MySQL"><Trash2 size={16} /></button>
                     </div>
                   </td>
@@ -185,7 +262,7 @@ export default function ProductsPage() {
                 <td colSpan="5" className="text-center py-6 text-muted">
                   <div className="empty-state">
                     <Inbox size={32} />
-                    <p>Belum ada produk di database. Klik tombol "Tambah Menu Ke Database".</p>
+                    <p>Belum ada produk di database. Klik tombol "Tambah Produk".</p>
                   </div>
                 </td>
               </tr>

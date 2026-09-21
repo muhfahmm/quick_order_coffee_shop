@@ -26,6 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     
     Route::post('/categories', [CategoryController::class, 'store']);
+    Route::put('/categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+
 
     Route::post('/tables', [TableController::class, 'store']);
     Route::put('/tables/{id}/status', [TableController::class, 'updateStatus']);

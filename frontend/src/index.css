@@ -124,7 +124,8 @@ h1, h2, h3, h4, .brand-info h2 {
   margin-bottom: 20px;
 }
 
-.auth-form {
+.auth-form,
+.add-table-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -133,7 +134,7 @@ h1, h2, h3, h4, .brand-info h2 {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .form-group label {
@@ -255,6 +256,7 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin-top: 6px;
   box-shadow: 0 4px 12px rgba(124, 64, 18, 0.2);
   transition: all 0.2s ease;
 }
@@ -264,6 +266,7 @@ textarea {
   box-shadow: 0 6px 16px rgba(124, 64, 18, 0.3);
   transform: translateY(-1px);
 }
+
 
 .auth-footer {
   margin-top: 24px;
