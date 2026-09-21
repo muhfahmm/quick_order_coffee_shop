@@ -127,7 +127,6 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      {/* Modal Tambah Produk Baru */}
       {showAddModal && (
         <div className="modal-overlay">
           <div className="modal-card">
@@ -166,7 +165,6 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Modal Edit Produk */}
       {editingProduct && (
         <div className="modal-overlay">
           <div className="modal-card">

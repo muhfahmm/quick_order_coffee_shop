@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2, Edit3 } from 'lucide-react';
+import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2 } from 'lucide-react';
 import { tableService } from '../../services/api';
 
 export default function TablesPage() {
@@ -64,7 +64,6 @@ export default function TablesPage() {
       </div>
 
       <div className="tables-layout-grid">
-        {/* Form Tambah Meja Baru */}
         <div className="card-panel">
           <div className="card-header">
             <h3><Plus size={18} /> Tambah Meja Baru</h3>
@@ -86,7 +85,6 @@ export default function TablesPage() {
           </form>
         </div>
 
-        {/* Daftar Kartu Meja & QR */}
         <div className="tables-cards-grid">
           {tables.length > 0 ? (
             tables.map((tbl) => {

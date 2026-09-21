@@ -10,7 +10,6 @@ const api = axios.create({
   }
 });
 
-// Request Interceptor: Otomatis sisipkan Bearer token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('coffee_admin_token');
   if (token) {
@@ -39,7 +38,6 @@ export const categoryService = {
   delete: (id) => api.delete(`/categories/${id}`)
 };
 
-
 export const tableService = {
   getAll: () => api.get('/tables'),
   create: (data) => api.post('/tables', data),
@@ -54,4 +52,3 @@ export const orderService = {
 };
 
 export default api;
-

@@ -9,9 +9,9 @@ import {
   Layers,
   ShoppingBag,
   LogOut,
-  Bell,
   Search,
-  UserCheck
+  ExternalLink,
+  Store
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -24,7 +24,7 @@ export default function AdminLayout() {
 
   const navItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Live Orders', path: '/admin/orders', icon: ShoppingBag, badge: '5 New' },
+    { label: 'Live Orders', path: '/admin/orders', icon: ShoppingBag, badge: 'Live' },
     { label: 'Kelola Meja & QR', path: '/admin/tables', icon: QrCode },
     { label: 'Daftar Menu Produk', path: '/admin/products', icon: UtensilsCrossed },
     { label: 'Kategori Menu', path: '/admin/categories', icon: Layers },
@@ -32,7 +32,6 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      {/* Sidebar Navigation */}
       <aside className="admin-sidebar">
         <div className="sidebar-header">
           <div className="brand-badge-small">
@@ -74,12 +73,9 @@ export default function AdminLayout() {
             <LogOut size={18} />
           </button>
         </div>
-
       </aside>
 
-      {/* Main Content Area */}
       <div className="admin-main">
-        {/* Top Header / Navbar */}
         <header className="admin-navbar">
           <div className="search-bar">
             <Search size={18} className="search-icon" />
@@ -87,18 +83,14 @@ export default function AdminLayout() {
           </div>
 
           <div className="navbar-actions">
-            <button className="icon-button notification-btn">
-              <Bell size={20} />
-              <span className="dot-badge"></span>
-            </button>
-            <div className="system-status">
-              <span className="status-indicator online"></span>
-              <span>Kasir Live Sync Active</span>
-            </div>
+            <Link to="/menu" target="_blank" className="btn-customer-redirect">
+              <Store size={18} />
+              <span>Halaman Order Customer</span>
+              <ExternalLink size={14} />
+            </Link>
           </div>
         </header>
 
-        {/* Dynamic Outlet Page */}
         <main className="admin-content">
           <Outlet />
         </main>

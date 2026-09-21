@@ -485,50 +485,29 @@ textarea {
   gap: 16px;
 }
 
-.icon-button {
-  background: var(--bg-body);
-  border: 1px solid var(--border-color);
-  color: var(--coffee-medium);
-  width: 40px;
-  height: 40px;
+.btn-customer-redirect {
+  background: linear-gradient(135deg, #7C4012, #D97706);
+  color: #FFFFFF;
+  text-decoration: none;
+  padding: 10px 18px;
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
-}
-
-.icon-button:hover {
-  background: var(--bg-subtle);
-  color: var(--accent-coffee);
-}
-
-.dot-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
-  background: #DC2626;
-  border-radius: 50%;
-}
-
-.system-status {
+  font-size: 13px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--coffee-medium);
-  background: var(--bg-body);
-  border: 1px solid var(--border-color);
-  padding: 8px 14px;
-  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(124, 64, 18, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-customer-redirect:hover {
+  background: linear-gradient(135deg, #5C2E0B, #8B4513);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 64, 18, 0.3);
 }
 
 .status-indicator {
+
   width: 8px;
   height: 8px;
   border-radius: 50%;

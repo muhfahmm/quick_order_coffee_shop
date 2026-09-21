@@ -16,7 +16,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 10000); // Polling otomatis tiap 10 detik untuk live updates
+    const interval = setInterval(fetchOrders, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -43,7 +43,6 @@ export default function OrdersPage() {
       </div>
 
       <div className="orders-kanban-board">
-        {/* Kolom Pending */}
         <div className="kanban-column">
           <div className="column-header status-pending">
             <h3><AlertCircle size={18} /> Pesanan Baru (Pending)</h3>
@@ -84,7 +83,6 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* Kolom Processing */}
         <div className="kanban-column">
           <div className="column-header status-processing">
             <h3><Clock size={18} /> Sedang Disiapkan (Cooking)</h3>
@@ -125,7 +123,6 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* Kolom Completed */}
         <div className="kanban-column">
           <div className="column-header status-completed">
             <h3><CheckCircle2 size={18} /> Selesai / Diantar</h3>

@@ -54,7 +54,6 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      {/* Header Halaman */}
       <div className="page-header">
         <div>
           <h1 className="page-title">Ikhtisar Coffee Shop & Bar</h1>
@@ -66,7 +65,6 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Grid Statistik / KPI Cards */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-header">
@@ -109,9 +107,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Grid Konten Utama Dashboard */}
       <div className="dashboard-content-grid">
-        {/* Pesanan Terbaru */}
         <div className="card-panel">
           <div className="card-header">
             <h3>Pesanan Masuk Terbaru (Quick Order Meja)</h3>
@@ -157,7 +153,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Ringkasan Status Meja Live */}
         <div className="card-panel">
           <div className="card-header">
             <h3>Status Okupansi Meja Kedai</h3>

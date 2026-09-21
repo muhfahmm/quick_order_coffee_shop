@@ -5,8 +5,6 @@ import { categoryService } from '../../services/api';
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState('');
-  
-  // State Edit Category Modal
   const [editingCategory, setEditingCategory] = useState(null);
   const [editName, setEditName] = useState('');
 
@@ -76,7 +74,6 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* Modal Edit Kategori */}
       {editingCategory && (
         <div className="modal-overlay">
           <div className="modal-card">
