@@ -105,24 +105,20 @@ CREATE TABLE `tb_order_items` (
   CONSTRAINT `fk_items_product` FOREIGN KEY (`product_id`) REFERENCES `tb_products` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- Sample Seed Data
--- ============================================================
-
-INSERT INTO `tb_categories` (`id`, `name`, `slug`) VALUES
-(1, 'Espresso Based', 'espresso-based'),
-(2, 'Cold Brew & Ice', 'cold-brew-and-ice'),
-(3, 'Non-Coffee', 'non-coffee'),
-(4, 'Pastry & Snacks', 'pastry-and-snacks');
-
-INSERT INTO `tb_products` (`id`, `category_id`, `name`, `description`, `price`, `image`, `is_available`) VALUES
-(1, 1, 'Espresso Single Shot', 'Ekstrak biji kopi pilihan berseri khas kedai.', 18000.00, 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400', 1),
-(2, 1, 'Cappuccino Latte', 'Perpaduan espresso mantap dengan susu steam lembut.', 25000.00, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400', 1),
-(3, 2, 'Cold Brew Cream Special', 'Kopi seduh dingin 12 jam dengan topping foam manis.', 28000.00, 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400', 1),
-(4, 3, 'Matcha Green Tea Latte', 'Bubuk matcha murni jepang racikan spesial.', 26000.00, 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=400', 1),
-(5, 4, 'Butter Croissant', 'Pastry renyah dan harum mentega prancis.', 22000.00, 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400', 1);
-
-INSERT INTO `tb_tables` (`id`, `table_number`, `qr_code_token`, `status`) VALUES
-(1, 'Meja 01', 'tbl-token-01', 'available'),
-(2, 'Meja 02', 'tbl-token-02', 'available'),
-(3, 'Meja 03', 'tbl-token-03', 'available');
+-- ------------------------------------------------------------
+-- 7. Tabel Personal Access Tokens Sanctum (personal_access_tokens)
+-- ------------------------------------------------------------
+DROP TABLE IF EXISTS `personal_access_tokens`;
+CREATE TABLE `personal_access_tokens` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `tokenable_type` VARCHAR(255) NOT NULL,
+  `tokenable_id` BIGINT UNSIGNED NOT NULL,
+  `name` TEXT NOT NULL,
+  `token` VARCHAR(64) NOT NULL UNIQUE,
+  `abilities` TEXT NULL,
+  `last_used_at` TIMESTAMP NULL DEFAULT NULL,
+  `expires_at` TIMESTAMP NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT NULL,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`, `tokenable_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

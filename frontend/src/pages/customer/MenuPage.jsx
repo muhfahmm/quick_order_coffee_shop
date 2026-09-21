@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send } from 'lucide-react';
-import { productService, categoryService, orderService } from '../../services/api';
+import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X } from 'lucide-react';
+import { productService, categoryService, orderService, tableService } from '../../services/api';
 
 export default function MenuPage() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
+  const [tables, setTables] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [cart, setCart] = useState([]);
   const [customerName, setCustomerName] = useState('');
-  const [tableNumber, setTableNumber] = useState('Meja 01');
+  const [tableNumber, setTableNumber] = useState('');
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
 
@@ -23,12 +25,14 @@ export default function MenuPage() {
   useEffect(() => {
     const fetchMenuData = async () => {
       try {
-        const [resProd, resCat] = await Promise.all([
+        const [resProd, resCat, resTbl] = await Promise.all([
           productService.getAll(),
-          categoryService.getAll()
+          categoryService.getAll(),
+          tableService.getAll()
         ]);
         setProducts(resProd.data.data || []);
         setCategories(resCat.data.data || []);
+        setTables(resTbl.data.data || []);
       } catch (err) {
         console.error('Gagal memuat menu customer:', err);
       }
@@ -68,6 +72,12 @@ export default function MenuPage() {
 
   const handleCreateOrder = async (e) => {
     e.preventDefault();
+
+    if (!tableNumber) {
+      alert('Silakan pilih meja terlebih dahulu sebelum mengirim pesanan.');
+      setIsTableModalOpen(true);
+      return;
+    }
 
     if (!customerName || cart.length === 0) return;
 
@@ -169,19 +179,28 @@ export default function MenuPage() {
             </div>
           </div>
 
-          <div
+          <button
+            type="button"
+            onClick={() => setIsTableModalOpen(true)}
             style={{
-              background: '#F4ECE1',
-              padding: '6px 14px',
+              background: tableNumber ? '#F4ECE1' : 'linear-gradient(135deg, #7C4012, #D97706)',
+              color: tableNumber ? '#7C4012' : '#FFFFFF',
+              padding: '8px 16px',
               borderRadius: '20px',
-              border: '1px solid #E8DFD5',
+              border: tableNumber ? '1px solid #E8DFD5' : 'none',
               fontSize: '13px',
               fontWeight: 700,
-              color: '#7C4012'
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: tableNumber ? 'none' : '0 4px 12px rgba(124, 64, 18, 0.2)',
+              transition: 'all 0.2s ease'
             }}
           >
-            {tableNumber}
-          </div>
+            <MapPin size={14} />
+            {tableNumber ? tableNumber : 'Pilih Meja'}
+          </button>
         </div>
       </header>
 
@@ -580,6 +599,134 @@ export default function MenuPage() {
                 {isSubmitting ? 'Kirim...' : 'Kirim Pesanan'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {isTableModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(45, 26, 16, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+            backdropFilter: 'blur(3px)'
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '24px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '20px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <MapPin size={20} style={{ color: '#7C4012' }} />
+                <h3
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 800,
+                    color: '#2D1A10',
+                    margin: 0
+                  }}
+                >
+                  Pilih Nomor Meja
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsTableModalOpen(false)}
+                style={{
+                  background: '#F4ECE1',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#7C4012'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: '#7A695C', marginBottom: '16px' }}>
+              Silakan pilih posisi/nomor meja Anda untuk melanjutkan pemesanan:
+            </p>
+
+            {tables.length > 0 ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '10px',
+                  maxHeight: '260px',
+                  overflowY: 'auto',
+                  paddingRight: '4px'
+                }}
+              >
+                {tables.map((t) => {
+                  const isSelected = tableNumber === t.table_number;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setTableNumber(t.table_number);
+                        setIsTableModalOpen(false);
+                      }}
+                      style={{
+                        padding: '12px 8px',
+                        borderRadius: '12px',
+                        border: isSelected
+                          ? '2px solid #7C4012'
+                          : '1px solid #E8DFD5',
+                        background: isSelected ? '#7C4012' : '#FAF6F0',
+                        color: isSelected ? '#FFFFFF' : '#2D1A10',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {t.table_number}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  background: '#FAF6F0',
+                  borderRadius: '12px',
+                  border: '1px dashed #E8DFD5',
+                  color: '#7A695C',
+                  fontSize: '14px',
+                  fontWeight: 600
+                }}
+              >
+                Tidak ada meja yang tersedia
+              </div>
+            )}
           </div>
         </div>
       )}
