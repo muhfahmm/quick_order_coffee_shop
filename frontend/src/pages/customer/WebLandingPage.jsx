@@ -37,6 +37,7 @@ export default function WebLandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    document.title = 'Website Utama - Coffee Shop Resto';
     const fetchMenuData = async () => {
       try {
         const [resProd, resCat] = await Promise.all([

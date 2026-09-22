@@ -7,6 +7,10 @@ import FastImage from '../../components/common/FastImage';
 export default function CheckoutPage() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    document.title = 'Checkout Pesanan | CoffeeShop Resto';
+  }, []);
+
   // Get saved checkout state from storage (cleared on page reload)
   const [cart, setCart] = useState(() => {
     try {

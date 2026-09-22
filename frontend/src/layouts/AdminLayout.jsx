@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -19,6 +19,18 @@ import {
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    const titleMap = {
+      '/admin/dashboard': 'Dashboard Overview - Admin Control',
+      '/admin/orders': 'Daftar Live Orders - Admin Control',
+      '/admin/tables': 'Kelola Meja & QR Token - Admin Control',
+      '/admin/products': 'Kelola Menu Produk - Admin Control',
+      '/admin/highlights': 'Highlight Menu Resto - Admin Control',
+      '/admin/categories': 'Kategori Menu Cafe - Admin Control'
+    };
+    document.title = titleMap[location.pathname] || 'Panel Admin Dashboard - Resto Control';
+  }, [location.pathname]);
 
   if (!user) {
     return <Navigate to="/auth/login" replace />;

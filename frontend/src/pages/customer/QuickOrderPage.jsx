@@ -132,6 +132,7 @@ export default function QuickOrderPage() {
   };
 
   useEffect(() => {
+    document.title = 'Quick Order Customer - Resto & Cafe';
     const params = new URLSearchParams(window.location.search);
     const tbl = params.get('table_number') || params.get('table');
     if (tbl) {
