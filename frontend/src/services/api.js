@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const hostname = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : '127.0.0.1';
+const API_BASE_URL = `http://${hostname}:8000/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,6 +17,36 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+});
+
+api.interceptors.response.use((response) => {
+  const currentHost = typeof window !== 'undefined' ? window.location.hostname : '127.0.0.1';
+  if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+    const replaceHost = (str) => {
+      if (typeof str !== 'string') return str;
+      return str.replace(/http:\/\/(localhost|127\.0\.0\.1):8000/g, `http://${currentHost}:8000`);
+    };
+
+    const processData = (data) => {
+      if (!data) return data;
+      if (Array.isArray(data)) {
+        return data.map(item => processData(item));
+      }
+      if (typeof data === 'object') {
+        const copy = { ...data };
+        if (copy.image) copy.image = replaceHost(copy.image);
+        if (copy.hot_image) copy.hot_image = replaceHost(copy.hot_image);
+        if (copy.ice_image) copy.ice_image = replaceHost(copy.ice_image);
+        return copy;
+      }
+      return data;
+    };
+
+    if (response.data && response.data.data) {
+      response.data.data = processData(response.data.data);
+    }
+  }
+  return response;
 });
 
 export const authService = {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2 } from 'lucide-react';
+import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2, Wifi, Globe } from 'lucide-react';
 import { tableService } from '../../services/api';
 import QRCodeImage from '../../components/common/QRCodeImage';
 
@@ -13,6 +13,16 @@ export default function TablesPage() {
     }
   });
   const [newTableName, setNewTableName] = useState('');
+  const [customHostIp, setCustomHostIp] = useState(() => {
+    const saved = localStorage.getItem('qr_host_ip');
+    if (saved && !saved.includes('localhost') && !saved.includes('127.0.0.1')) {
+      return saved;
+    }
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return window.location.origin;
+    }
+    return 'http://192.168.117.254:5173';
+  });
 
   const fetchTables = async () => {
     try {
@@ -73,6 +83,62 @@ export default function TablesPage() {
         </div>
       </div>
 
+      {/* Network IP QR Code Config Bar */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #FFF8F0, #FEF3C7)',
+          border: '1.5px solid #FED7AA',
+          borderRadius: '16px',
+          padding: '12px 18px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          boxShadow: '0 2px 8px rgba(217, 119, 6, 0.08)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ background: '#7C4012', color: '#FFF', width: '34px', height: '34px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Wifi size={18} />
+          </div>
+          <div>
+            <strong style={{ fontSize: '13px', color: '#2D1A10', display: 'block' }}>
+              URL Host QR Code (Akses HP Fisik):
+            </strong>
+            <span style={{ fontSize: '11px', color: '#7C4012' }}>
+              Gunakan IP Komputer agar kamera HP fisik dapat membuka webpage saat di-scan
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Globe size={16} style={{ color: '#D97706' }} />
+          <input
+            type="text"
+            value={customHostIp}
+            onChange={(e) => {
+              const val = e.target.value;
+              setCustomHostIp(val);
+              localStorage.setItem('qr_host_ip', val);
+            }}
+            placeholder="http://192.168.117.254:5173"
+            style={{
+              padding: '7px 12px',
+              borderRadius: '10px',
+              border: '1.5px solid #D97706',
+              fontSize: '12px',
+              fontWeight: 700,
+              width: '240px',
+              color: '#2D1A10',
+              background: '#FFFFFF',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
+            }}
+          />
+        </div>
+      </div>
+
       <div className="tables-layout-grid">
         <div className="card-panel">
           <div className="card-header">
@@ -98,7 +164,13 @@ export default function TablesPage() {
         <div className="tables-cards-grid">
           {tables.length > 0 ? (
             tables.map((tbl) => {
-              const scanUrl = `${window.location.origin}/scan?table=${encodeURIComponent(tbl.table_number)}&token=${tbl.qr_code_token}`;
+              let targetHost = (customHostIp || '').trim().replace(/\/$/, '');
+              if (!targetHost || targetHost.includes('localhost') || targetHost.includes('127.0.0.1')) {
+                targetHost = 'http://192.168.117.254:5173';
+              } else if (!targetHost.startsWith('http')) {
+                targetHost = `http://${targetHost}`;
+              }
+              const scanUrl = `${targetHost}/scan?table=${encodeURIComponent(tbl.table_number)}&token=${tbl.qr_code_token}`;
               return (
                 <div key={tbl.id} className="table-qr-card">
                   <div className="table-card-header">
