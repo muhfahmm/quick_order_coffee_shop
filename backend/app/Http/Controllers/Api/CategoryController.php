@@ -26,9 +26,17 @@ class CategoryController extends Controller
             'icon_or_image' => 'nullable|string'
         ]);
 
+        $baseSlug = Str::slug($request->name) ?: 'kategori';
+        $slug = $baseSlug;
+        $count = 1;
+        while (Category::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $count;
+            $count++;
+        }
+
         $category = Category::create([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
+            'slug' => $slug,
             'icon_or_image' => $request->icon_or_image
         ]);
 
@@ -46,9 +54,18 @@ class CategoryController extends Controller
         ]);
 
         $category = Category::findOrFail($id);
+
+        $baseSlug = Str::slug($request->name) ?: 'kategori';
+        $slug = $baseSlug;
+        $count = 1;
+        while (Category::where('slug', $slug)->where('id', '!=', $id)->exists()) {
+            $slug = $baseSlug . '-' . $count;
+            $count++;
+        }
+
         $category->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
+            'slug' => $slug,
         ]);
 
         return response()->json([

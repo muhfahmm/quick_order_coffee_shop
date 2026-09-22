@@ -92,23 +92,18 @@ export default function QuickOrderPage() {
   const [tableNumber, setTableNumber] = useState(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      const rawParam = params.get('table') || params.get('table_number') || params.get('meja') || params.get('token');
+      const rawParam = params.get('table') || params.get('table_number') || params.get('meja');
       if (rawParam) {
         let resolved = rawParam;
-        if (rawParam.startsWith('tbl-')) {
-          const cachedTables = JSON.parse(localStorage.getItem('cached_tables') || '[]');
-          const found = cachedTables.find((t) => t.qr_code_token === rawParam);
-          if (found) resolved = found.table_number;
-        } else if (/^\d+$/.test(rawParam)) {
+        if (/^\d+$/.test(rawParam)) {
           resolved = `Meja ${parseInt(rawParam, 10)}`;
         } else if (!rawParam.toLowerCase().startsWith('meja')) {
           resolved = `Meja ${rawParam}`;
         }
         sessionStorage.setItem('current_table_number', resolved);
-        localStorage.setItem('current_table_number', resolved);
         return resolved;
       }
-      return sessionStorage.getItem('current_table_number') || localStorage.getItem('current_table_number') || '';
+      return sessionStorage.getItem('current_table_number') || '';
     } catch {
       return '';
     }
@@ -157,20 +152,16 @@ export default function QuickOrderPage() {
   useEffect(() => {
     document.title = 'Quick Order Customer - Resto & Cafe';
     const params = new URLSearchParams(window.location.search);
-    const rawParam = params.get('table') || params.get('table_number') || params.get('meja') || params.get('token');
+    const rawParam = params.get('table') || params.get('table_number') || params.get('meja');
     if (rawParam) {
       let resolved = rawParam;
-      if (rawParam.startsWith('tbl-')) {
-        const found = tables.find((t) => t.qr_code_token === rawParam);
-        if (found) resolved = found.table_number;
-      } else if (/^\d+$/.test(rawParam)) {
+      if (/^\d+$/.test(rawParam)) {
         resolved = `Meja ${parseInt(rawParam, 10)}`;
       } else if (!rawParam.toLowerCase().startsWith('meja')) {
         resolved = `Meja ${rawParam}`;
       }
       setTableNumber(resolved);
       sessionStorage.setItem('current_table_number', resolved);
-      localStorage.setItem('current_table_number', resolved);
     }
   }, [tables]);
 
@@ -451,7 +442,7 @@ export default function QuickOrderPage() {
         )}
 
         {/* Product Grid */}
-        <div className="quickorder-products-grid" style={{ display: 'grid', gap: '14px' }}>
+        <div className="quickorder-products-grid">
           {filteredProducts.map((prod) => (
             <div
               key={prod.id}

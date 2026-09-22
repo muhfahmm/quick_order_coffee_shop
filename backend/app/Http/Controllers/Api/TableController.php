@@ -26,7 +26,6 @@ class TableController extends Controller
 
         $table = Table::create([
             'table_number' => $request->table_number,
-            'qr_code_token' => 'tbl-' . Str::lower(Str::random(8)),
             'status' => 'available'
         ]);
 

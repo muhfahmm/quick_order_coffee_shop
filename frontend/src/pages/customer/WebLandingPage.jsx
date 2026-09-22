@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X, Flame, ChefHat, Tag, Gift, Bell, Search, Clock, Wifi, Utensils, Snowflake, Zap, AlertTriangle, BookOpen, Citrus, ShoppingCart, MousePointer, ShieldCheck, ArrowRight, UserCheck, Star, Phone, Menu } from 'lucide-react';
 import { productService, categoryService, orderService } from '../../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FastImage from '../../components/common/FastImage';
 import { preloadProductImages } from '../../utils/imagePreloader';
 
@@ -58,6 +58,7 @@ export default function WebLandingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = 'Website Utama - Coffee Shop Resto';
@@ -687,7 +688,7 @@ export default function WebLandingPage() {
         </div>
 
         <div style={{ maxWidth: '1200px', margin: '0 auto', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', textAlign: 'center', opacity: 0.6, fontSize: '12px' }}>
-          © 2026 CoffeeShop Resto. All rights reserved. Built with Quick QR & Online Order System.
+          © 2026 CoffeeShop Resto. All rights reserved. Built with Quick Order System.
         </div>
       </footer>
     </div>

@@ -13,7 +13,6 @@ class Table extends Model
 
     protected $fillable = [
         'table_number',
-        'qr_code_token',
         'status',
     ];
 

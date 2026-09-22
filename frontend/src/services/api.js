@@ -47,6 +47,15 @@ api.interceptors.response.use((response) => {
     }
   }
   return response;
+}, (error) => {
+  if (error.response && error.response.status === 401) {
+    localStorage.removeItem('coffee_admin_token');
+    localStorage.removeItem('coffee_admin_user');
+    if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
+      window.location.href = '/auth/login';
+    }
+  }
+  return Promise.reject(error);
 });
 
 export const authService = {

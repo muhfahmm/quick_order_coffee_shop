@@ -1230,6 +1230,12 @@ a.btn-customer-redirect:active {
   transition: max-width 0.3s ease;
 }
 
+.quickorder-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
+  gap: 16px;
+}
+
 /* Mobile Screen (< 640px) */
 @media (max-width: 639px) {
   .quickorder-container {
@@ -1247,7 +1253,7 @@ a.btn-customer-redirect:active {
     max-width: 840px !important;
   }
   .quickorder-products-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 280px)) !important;
     gap: 16px !important;
   }
 }
@@ -1258,8 +1264,22 @@ a.btn-customer-redirect:active {
     max-width: 1100px !important;
   }
   .quickorder-products-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 280px)) !important;
     gap: 20px !important;
   }
 }
 
+/* Mobile Camera Scan Button (Strictly Hidden on Desktop, Visible only on Devices <= 768px) */
+.web-mobile-camera-btn {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .web-mobile-camera-btn {
+    display: inline-flex !important;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 10px;
+    justify-content: center;
+  }
+}
