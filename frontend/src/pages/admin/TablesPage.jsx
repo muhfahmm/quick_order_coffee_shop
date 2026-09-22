@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QrCode, Plus, Printer, ExternalLink, Inbox, Trash2 } from 'lucide-react';
 import { tableService } from '../../services/api';
+import QRCodeImage from '../../components/common/QRCodeImage';
 
 export default function TablesPage() {
   const [tables, setTables] = useState(() => {
@@ -118,8 +119,9 @@ export default function TablesPage() {
                   </div>
 
                   <div className="qr-preview-box">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(scanUrl)}`}
+                    <QRCodeImage
+                      value={scanUrl}
+                      size={150}
                       alt={`QR Code ${tbl.table_number}`}
                       className="qr-image"
                     />

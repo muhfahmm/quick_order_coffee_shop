@@ -42,7 +42,7 @@ body {
 
 h1, h2, h3, h4, .brand-info h2 {
   font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
-  color: var(--coffee-dark);
+  color: white;
 }
 
 /* ============================================================
