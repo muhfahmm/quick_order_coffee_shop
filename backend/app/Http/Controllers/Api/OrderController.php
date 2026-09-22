@@ -30,14 +30,28 @@ class OrderController extends Controller
 
         $orderCode = 'ORD-' . strtoupper(Str::random(6));
 
+        $tableNum = $request->table_number ?? 'Meja General';
+
         $order = Order::create([
             'order_code' => $orderCode,
             'table_id' => $request->table_id ?? null,
-            'table_number' => $request->table_number ?? 'Meja General',
+            'table_number' => $tableNum,
             'customer_name' => $request->customer_name,
             'total_amount' => 0,
             'status' => 'pending'
         ]);
+
+        // Auto update table status to occupied when order is placed
+        if ($request->table_id) {
+            \App\Models\Table::where('id', $request->table_id)->update(['status' => 'occupied']);
+        } elseif ($tableNum && $tableNum !== 'Meja General') {
+            $rawNumber = trim($tableNum);
+            $cleanNumber = preg_replace('/^meja\s*/i', '', $rawNumber);
+            \App\Models\Table::where('table_number', $rawNumber)
+                ->orWhere('table_number', $cleanNumber)
+                ->orWhere('table_number', "Meja {$cleanNumber}")
+                ->update(['status' => 'occupied']);
+        }
 
         $total = 0;
         foreach ($request->items as $item) {

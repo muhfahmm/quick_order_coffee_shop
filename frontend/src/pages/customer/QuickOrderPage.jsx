@@ -153,7 +153,7 @@ export default function QuickOrderPage() {
     document.title = 'Quick Order Customer - Resto & Cafe';
     const params = new URLSearchParams(window.location.search);
     const rawParam = params.get('table') || params.get('table_number') || params.get('meja');
-    if (rawParam) {
+    if (rawParam && tables.length > 0) {
       let resolved = rawParam;
       if (/^\d+$/.test(rawParam)) {
         resolved = `Meja ${parseInt(rawParam, 10)}`;
@@ -162,6 +162,13 @@ export default function QuickOrderPage() {
       }
       setTableNumber(resolved);
       sessionStorage.setItem('current_table_number', resolved);
+
+      // Auto update table status to occupied in database
+      const cleanNum = rawParam.replace(/^meja\s*/i, '');
+      const found = tables.find(t => t.table_number === resolved || t.table_number === rawParam || t.table_number === cleanNum || t.table_number === `Meja ${cleanNum}`);
+      if (found && found.status !== 'occupied') {
+        tableService.updateStatus(found.id, 'occupied').catch(() => {});
+      }
     }
   }, [tables]);
 
@@ -828,12 +835,17 @@ export default function QuickOrderPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
               {tables.map((t) => {
-                const isSelected = tableNumber === t.table_number;
+                const isSelected = tableNumber === t.table_number || tableNumber === `Meja ${t.table_number}` || t.table_number === `Meja ${tableNumber}`;
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => { setTableNumber(t.table_number); setIsTableModalOpen(false); }}
+                    onClick={() => {
+                      setTableNumber(t.table_number);
+                      sessionStorage.setItem('current_table_number', t.table_number);
+                      setIsTableModalOpen(false);
+                      tableService.updateStatus(t.id, 'occupied').catch(() => {});
+                    }}
                     style={{ padding: '10px 6px', borderRadius: '10px', border: isSelected ? '2px solid #7C4012' : '1px solid #E8DFD5', background: isSelected ? '#7C4012' : '#FAF6F0', color: isSelected ? '#FFFFFF' : '#2D1A10', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
                   >
                     {t.table_number}
