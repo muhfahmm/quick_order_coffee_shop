@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -13,12 +13,15 @@ import {
   ExternalLink,
   Store,
   Flame,
-  Home
+  Home,
+  Menu,
+  X
 } from 'lucide-react';
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const titleMap = {
@@ -30,6 +33,7 @@ export default function AdminLayout() {
       '/admin/categories': 'Kategori Menu Cafe - Admin Control'
     };
     document.title = titleMap[location.pathname] || 'Panel Admin Dashboard - Resto Control';
+    setIsSidebarOpen(false);
   }, [location.pathname]);
 
   if (!user) {
@@ -47,15 +51,32 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar">
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="admin-sidebar-backdrop"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
-          <div className="brand-badge-small">
-            <Coffee size={22} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="brand-badge-small">
+              <Coffee size={22} />
+            </div>
+            <div className="brand-info">
+              <h2>CoffeeShop</h2>
+              <span>Quick Order Admin</span>
+            </div>
           </div>
-          <div className="brand-info">
-            <h2>CoffeeShop</h2>
-            <span>Quick Order Admin</span>
-          </div>
+          <button
+            type="button"
+            className="mobile-sidebar-close-btn"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -68,6 +89,7 @@ export default function AdminLayout() {
                 key={item.path}
                 to={item.path}
                 className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => setIsSidebarOpen(false)}
               >
                 <Icon size={20} />
                 <span>{item.label}</span>
@@ -92,21 +114,32 @@ export default function AdminLayout() {
 
       <div className="admin-main">
         <header className="admin-navbar">
-          <div className="search-bar">
-            <Search size={18} className="search-icon" />
-            <input type="text" placeholder="Cari kode pesanan, meja, atau menu..." />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              className="mobile-menu-toggle-btn"
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Toggle Sidebar Navigation"
+            >
+              <Menu size={22} />
+            </button>
+
+            <div className="search-bar">
+              <Search size={18} className="search-icon" />
+              <input type="text" placeholder="Cari pesanan, meja, atau menu..." />
+            </div>
           </div>
 
-          <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="navbar-actions">
             <Link to="/menu" target="_blank" className="btn-customer-redirect">
               <Store size={18} />
-              <span>Halaman Order Customer</span>
+              <span className="btn-redirect-text">Order Customer</span>
               <ExternalLink size={14} />
             </Link>
 
-            <Link to="/web" target="_blank" className="btn-customer-redirect" style={{ background: '#FAF6F0', color: '#7C4012', border: '1px solid #E8DFD5' }}>
+            <Link to="/web" target="_blank" className="btn-customer-redirect btn-web-resto" style={{ background: '#FAF6F0', color: '#7C4012', border: '1px solid #E8DFD5' }}>
               <Home size={18} />
-              <span>Web Resto User</span>
+              <span className="btn-redirect-text">Web Resto</span>
               <ExternalLink size={14} />
             </Link>
           </div>
