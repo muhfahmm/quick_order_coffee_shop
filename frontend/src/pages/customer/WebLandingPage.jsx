@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X, Flame, ChefHat, Tag, Gift, Bell, Search, Clock, Wifi, Utensils, Snowflake, Zap, AlertTriangle, BookOpen, Citrus, ShoppingCart, MousePointer, ShieldCheck, ArrowRight, UserCheck, Star, Phone, Menu } from 'lucide-react';
 import { productService, categoryService, orderService } from '../../services/api';
 import { Link } from 'react-router-dom';
+import FastImage from '../../components/common/FastImage';
+import { preloadProductImages } from '../../utils/imagePreloader';
 
 export default function WebLandingPage() {
   const [categories, setCategories] = useState(() => {
@@ -16,7 +18,9 @@ export default function WebLandingPage() {
   const [products, setProducts] = useState(() => {
     try {
       const cached = localStorage.getItem('cached_products');
-      return cached ? JSON.parse(cached) : [];
+      const parsed = cached ? JSON.parse(cached) : [];
+      if (parsed.length > 0) preloadProductImages(parsed);
+      return parsed;
     } catch {
       return [];
     }
@@ -45,6 +49,7 @@ export default function WebLandingPage() {
         setProducts(prodData);
         setCategories(catData);
 
+        preloadProductImages(prodData);
         localStorage.setItem('cached_products', JSON.stringify(prodData));
         localStorage.setItem('cached_categories', JSON.stringify(catData));
       } catch (err) {
@@ -504,13 +509,7 @@ export default function WebLandingPage() {
               }}
             >
               <div style={{ position: 'relative', marginBottom: '12px' }}>
-                {prod.image ? (
-                  <img src={prod.image} alt={prod.name} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '12px' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '150px', background: '#F4ECE1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
-                    <Coffee size={36} />
-                  </div>
-                )}
+                <FastImage src={prod.image} alt={prod.name} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '12px' }} />
 
                 {prod.is_best_seller && (
                   <span style={{ position: 'absolute', top: '8px', left: '8px', background: '#DC2626', color: '#FFF', fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -599,7 +598,7 @@ export default function WebLandingPage() {
                 onClick={() => { addToCartWithVariant(variantProduct, 'Panas', variantProduct.hot_name || null, variantProduct.hot_price, variantProduct.hot_image || variantProduct.image); setVariantProduct(null); }}
                 style={{ padding: '14px 10px', borderRadius: '16px', border: '1.5px solid #FED7AA', background: '#FFF8F0', color: '#9A3412', fontWeight: 800, fontSize: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
               >
-                {variantProduct.hot_image ? <img src={variantProduct.hot_image} alt="Hot" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Coffee size={26} style={{ color: '#EA580C' }} />}
+                {variantProduct.hot_image ? <FastImage src={variantProduct.hot_image} alt="Hot" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Coffee size={26} style={{ color: '#EA580C' }} />}
                 <span>{variantProduct.hot_name || 'Panas (Hot)'}</span>
               </button>
 
@@ -608,7 +607,7 @@ export default function WebLandingPage() {
                 onClick={() => { addToCartWithVariant(variantProduct, 'Dingin', variantProduct.ice_name || null, variantProduct.ice_price, variantProduct.ice_image || variantProduct.image); setVariantProduct(null); }}
                 style={{ padding: '14px 10px', borderRadius: '16px', border: '1.5px solid #BAE6FD', background: '#F0F9FF', color: '#0369A1', fontWeight: 800, fontSize: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
               >
-                {variantProduct.ice_image ? <img src={variantProduct.ice_image} alt="Ice" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Snowflake size={26} style={{ color: '#0284C7' }} />}
+                {variantProduct.ice_image ? <FastImage src={variantProduct.ice_image} alt="Ice" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Snowflake size={26} style={{ color: '#0284C7' }} />}
                 <span>{variantProduct.ice_name || 'Dingin (Ice)'}</span>
               </button>
             </div>

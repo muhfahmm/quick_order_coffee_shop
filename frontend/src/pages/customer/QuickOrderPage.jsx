@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Coffee, ShoppingBag, Plus, Check, Send, MapPin, X, Snowflake, AlertTriangle, Search, ChevronUp, ChevronDown, Trash2, ArrowRight, Home } from 'lucide-react';
 import { productService, categoryService, orderService, tableService } from '../../services/api';
+import FastImage from '../../components/common/FastImage';
+import { preloadProductImages } from '../../utils/imagePreloader';
 
 export default function QuickOrderPage() {
   const navigate = useNavigate();
@@ -17,7 +19,9 @@ export default function QuickOrderPage() {
   const [products, setProducts] = useState(() => {
     try {
       const cached = localStorage.getItem('cached_products');
-      return cached ? JSON.parse(cached) : [];
+      const parsed = cached ? JSON.parse(cached) : [];
+      if (parsed.length > 0) preloadProductImages(parsed);
+      return parsed;
     } catch {
       return [];
     }
@@ -151,6 +155,7 @@ export default function QuickOrderPage() {
         setCategories(catData);
         setTables(tblData);
 
+        preloadProductImages(prodData);
         localStorage.setItem('cached_products', JSON.stringify(prodData));
         localStorage.setItem('cached_categories', JSON.stringify(catData));
         localStorage.setItem('cached_tables', JSON.stringify(tblData));
@@ -427,13 +432,7 @@ export default function QuickOrderPage() {
                 opacity: prod.is_available ? 1 : 0.6
               }}
             >
-              {prod.image ? (
-                <img src={prod.image} alt={prod.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px', marginBottom: '8px' }} />
-              ) : (
-                <div style={{ width: '100%', height: '140px', background: '#F4ECE1', borderRadius: '10px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
-                  <Coffee size={28} />
-                </div>
-              )}
+              <FastImage src={prod.image} alt={prod.name} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px', marginBottom: '8px' }} />
 
               <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#2D1A10', margin: '0 0 2px 0' }}>
                 {prod.name}
@@ -540,13 +539,7 @@ export default function QuickOrderPage() {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, paddingRight: '12px' }}>
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} />
-                        ) : (
-                          <div style={{ width: '44px', height: '44px', background: '#F4ECE1', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
-                            <Coffee size={20} />
-                          </div>
-                        )}
+                        <FastImage src={item.image} alt={item.name} style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }} />
                         <div>
                           <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#2D1A10', margin: '0 0 4px 0' }}>
                             {item.name}
@@ -745,7 +738,7 @@ export default function QuickOrderPage() {
                   gap: '6px'
                 }}
               >
-                {variantProduct.hot_image ? <img src={variantProduct.hot_image} alt="Hot" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Coffee size={24} style={{ color: variantProduct.hot_available === false ? '#9CA3AF' : '#EA580C' }} />}
+                {variantProduct.hot_image ? <FastImage src={variantProduct.hot_image} alt="Hot" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Coffee size={24} style={{ color: variantProduct.hot_available === false ? '#9CA3AF' : '#EA580C' }} />}
                 <span>{variantProduct.hot_name || 'Panas (Hot)'}</span>
                 <span style={{ fontSize: '11px', color: variantProduct.hot_available === false ? '#EF4444' : '#EA580C', fontWeight: 700 }}>
                   {variantProduct.hot_available === false ? 'Stok Habis' : `Rp ${Number(variantProduct.hot_price || variantProduct.price).toLocaleString('id-ID')}`}
@@ -777,7 +770,7 @@ export default function QuickOrderPage() {
                   gap: '6px'
                 }}
               >
-                {variantProduct.ice_image ? <img src={variantProduct.ice_image} alt="Ice" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Snowflake size={24} style={{ color: variantProduct.ice_available === false ? '#9CA3AF' : '#0284C7' }} />}
+                {variantProduct.ice_image ? <FastImage src={variantProduct.ice_image} alt="Ice" style={{ width: '56px', height: '56px', borderRadius: '10px', objectFit: 'cover' }} /> : <Snowflake size={24} style={{ color: variantProduct.ice_available === false ? '#9CA3AF' : '#0284C7' }} />}
                 <span>{variantProduct.ice_name || 'Dingin (Ice)'}</span>
                 <span style={{ fontSize: '11px', color: variantProduct.ice_available === false ? '#EF4444' : '#EF4444' ? '#0284C7' : '#0284C7', fontWeight: 700 }}>
                   {variantProduct.ice_available === false ? 'Stok Habis' : `Rp ${Number(variantProduct.ice_price || variantProduct.price).toLocaleString('id-ID')}`}

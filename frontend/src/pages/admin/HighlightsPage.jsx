@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Flame, ChefHat, Coffee, Check, X, Inbox, Sparkles } from 'lucide-react';
 import { productService } from '../../services/api';
+import FastImage from '../../components/common/FastImage';
+import { preloadProductImages } from '../../utils/imagePreloader';
 
 export default function HighlightsPage() {
   const [products, setProducts] = useState(() => {
     try {
       const cached = localStorage.getItem('cached_products');
-      return cached ? JSON.parse(cached) : [];
+      const parsed = cached ? JSON.parse(cached) : [];
+      if (parsed.length > 0) preloadProductImages(parsed);
+      return parsed;
     } catch {
       return [];
     }
@@ -73,7 +77,6 @@ export default function HighlightsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
         <div style={{ background: '#FFF5F5', border: '1px solid #FECDD3', borderRadius: '16px', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
@@ -126,7 +129,7 @@ export default function HighlightsPage() {
                   <td className="font-semibold">
                     <div className="product-title-cell">
                       {prod.image ? (
-                        <img
+                        <FastImage
                           src={prod.image}
                           alt={prod.name}
                           style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #E8DFD5' }}
@@ -162,7 +165,7 @@ export default function HighlightsPage() {
                       }}
                     >
                       <Flame size={14} />
-                      <span>{prod.is_best_seller ? '🔥 Best Seller Active' : 'Off'}</span>
+                      <span>{prod.is_best_seller ? 'Best Seller Active' : 'Off'}</span>
                     </button>
                   </td>
                   <td style={{ textAlign: 'center' }}>
@@ -186,7 +189,7 @@ export default function HighlightsPage() {
                       }}
                     >
                       <ChefHat size={14} />
-                      <span>{prod.is_chef_pick ? '👨‍🍳 Rekomendasi Active' : 'Off'}</span>
+                      <span>{prod.is_chef_pick ? 'Rekomendasi Active' : 'Off'}</span>
                     </button>
                   </td>
                 </tr>

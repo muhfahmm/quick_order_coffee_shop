@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Coffee, MapPin, ArrowLeft, CreditCard, Send, Check, AlertTriangle, X, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { orderService, tableService } from '../../services/api';
+import FastImage from '../../components/common/FastImage';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -297,13 +298,7 @@ export default function CheckoutPage() {
                 {cart.map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: idx === cart.length - 1 ? 'none' : '1px solid #F4ECE1' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, paddingRight: '8px' }}>
-                      {item.image ? (
-                        <img src={item.image} alt={item.name} style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '48px', height: '48px', background: '#F4ECE1', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
-                          <Coffee size={22} />
-                        </div>
-                      )}
+                      <FastImage src={item.image} alt={item.name} style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }} />
                       <div>
                         <strong style={{ fontSize: '13px', color: '#2D1A10', display: 'block' }}>{item.name}</strong>
                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#7C4012' }}>

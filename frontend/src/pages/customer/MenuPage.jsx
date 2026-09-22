@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X, Flame, ChefHat, Tag, Gift, Bell, Search, Clock, Wifi, Utensils, Snowflake, Zap, AlertTriangle, BookOpen, Citrus, ShoppingCart, MousePointer } from 'lucide-react';
 import { productService, categoryService, orderService, tableService } from '../../services/api';
+import FastImage from '../../components/common/FastImage';
+import { preloadProductImages } from '../../utils/imagePreloader';
 
 export default function MenuPage() {
   const [categories, setCategories] = useState(() => {
@@ -15,7 +17,9 @@ export default function MenuPage() {
   const [products, setProducts] = useState(() => {
     try {
       const cached = localStorage.getItem('cached_products');
-      return cached ? JSON.parse(cached) : [];
+      const parsed = cached ? JSON.parse(cached) : [];
+      if (parsed.length > 0) preloadProductImages(parsed);
+      return parsed;
     } catch {
       return [];
     }
@@ -63,6 +67,7 @@ export default function MenuPage() {
         setCategories(catData);
         setTables(tblData);
 
+        preloadProductImages(prodData);
         localStorage.setItem('cached_products', JSON.stringify(prodData));
         localStorage.setItem('cached_categories', JSON.stringify(catData));
         localStorage.setItem('cached_tables', JSON.stringify(tblData));
@@ -518,13 +523,7 @@ export default function MenuPage() {
                   }}
                 >
                   <div style={{ position: 'relative', marginBottom: '8px' }}>
-                    {prod.image ? (
-                      <img src={prod.image} alt={prod.name} style={{ width: '100%', height: '90px', objectFit: 'cover', borderRadius: '10px' }} />
-                    ) : (
-                      <div style={{ width: '100%', height: '90px', background: '#F4ECE1', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7C4012' }}>
-                        <Coffee size={24} />
-                      </div>
-                    )}
+                    <FastImage src={prod.image} alt={prod.name} style={{ width: '100%', height: '90px', objectFit: 'cover', borderRadius: '10px' }} />
                     <span style={{ position: 'absolute', top: '4px', left: '4px', background: '#DC2626', color: '#FFF', fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '6px' }}>
                       #{i + 1} Terlaris
                     </span>
@@ -572,13 +571,7 @@ export default function MenuPage() {
                     cursor: 'pointer'
                   }}
                 >
-                  {prod.image ? (
-                    <img src={prod.image} alt={prod.name} style={{ width: '50px', height: '50px', borderRadius: '10px', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '50px', height: '50px', background: '#F4ECE1', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Coffee size={20} style={{ color: '#7C4012' }} />
-                    </div>
-                  )}
+                  <FastImage src={prod.image} alt={prod.name} style={{ width: '50px', height: '50px', borderRadius: '10px', objectFit: 'cover' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#2D1A10', margin: '0 0 2px 0' }}>{prod.name}</h4>
                     <p style={{ fontSize: '12px', fontWeight: 800, color: '#7C4012', margin: 0 }}>Rp {Number(prod.price).toLocaleString('id-ID')}</p>
@@ -666,7 +659,7 @@ export default function MenuPage() {
                 }}
               >
                 {prod.image ? (
-                  <img
+                  <FastImage
                     src={prod.image}
                     alt={prod.name}
                     className="card-img"
@@ -983,7 +976,7 @@ export default function MenuPage() {
                 }}
               >
                 {variantProduct.hot_image ? (
-                  <img
+                  <FastImage
                     src={variantProduct.hot_image}
                     alt={variantProduct.hot_name || 'Panas'}
                     style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', border: '2px solid #EA580C' }}
@@ -1017,7 +1010,7 @@ export default function MenuPage() {
                 }}
               >
                 {variantProduct.ice_image ? (
-                  <img
+                  <FastImage
                     src={variantProduct.ice_image}
                     alt={variantProduct.ice_name || 'Dingin'}
                     style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', border: '2px solid #0284C7' }}

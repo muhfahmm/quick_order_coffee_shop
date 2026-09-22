@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit3, Coffee, Check, X, Inbox, Upload, Image as ImageIcon, Flame, ChefHat, Snowflake, Target, Sparkles, Info } from 'lucide-react';
 import { productService, categoryService } from '../../services/api';
+import FastImage from '../../components/common/FastImage';
+import { preloadProductImages, preloadImage } from '../../utils/imagePreloader';
 
 function ImagePreviewThumbnail({ src, onRemove, onPreview, label = 'Preview', borderColor = '#D97706' }) {
   const [hovered, setHovered] = useState(false);
@@ -23,7 +25,7 @@ function ImagePreviewThumbnail({ src, onRemove, onPreview, label = 'Preview', bo
       }}
       title="Klik untuk memperbesar gambar"
     >
-      <img
+      <FastImage
         src={src}
         alt={label}
         style={{
@@ -145,6 +147,7 @@ export default function ProductsPage() {
       const catData = resCat.data.data || [];
       setProducts(prodData);
       setCategories(catData);
+      preloadProductImages(prodData);
       localStorage.setItem('cached_products', JSON.stringify(prodData));
       localStorage.setItem('cached_categories', JSON.stringify(catData));
       if (catData.length > 0 && !formData.category_id) {
@@ -849,7 +852,7 @@ export default function ProductsPage() {
                         {/* Hot Variant */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           {prod.hot_image ? (
-                            <img
+                            <FastImage
                               src={prod.hot_image}
                               alt={prod.hot_name || 'Hot'}
                               style={{ width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover', border: '1.5px solid #EA580C', flexShrink: 0 }}
@@ -870,7 +873,7 @@ export default function ProductsPage() {
                         {/* Ice Variant */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           {prod.ice_image ? (
-                            <img
+                            <FastImage
                               src={prod.ice_image}
                               alt={prod.ice_name || 'Ice'}
                               style={{ width: '38px', height: '38px', borderRadius: '10px', objectFit: 'cover', border: '1.5px solid #0284C7', flexShrink: 0 }}
@@ -891,7 +894,7 @@ export default function ProductsPage() {
                     ) : (
                       <div className="product-title-cell">
                         {prod.image ? (
-                          <img
+                          <FastImage
                             src={prod.image}
                             alt={prod.name}
                             style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #E8DFD5' }}
@@ -1003,7 +1006,7 @@ export default function ProductsPage() {
             >
               <X size={18} />
             </button>
-            <img
+            <FastImage
               src={previewModalUrl}
               alt="Full Preview"
               style={{ maxWidth: '82vw', maxHeight: '82vh', borderRadius: '12px', objectFit: 'contain', display: 'block' }}
