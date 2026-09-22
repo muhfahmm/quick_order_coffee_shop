@@ -97,6 +97,29 @@ export default function AdminLayout() {
               </Link>
             );
           })}
+
+          <div className="nav-section-title" style={{ marginTop: '18px' }}>TAMPILAN CUSTOMER</div>
+          <Link
+            to="/quick-order"
+            target="_blank"
+            className="nav-item"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <Store size={20} />
+            <span>Order Customer</span>
+            <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.6 }} />
+          </Link>
+
+          <Link
+            to="/web"
+            target="_blank"
+            className="nav-item"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <Home size={20} />
+            <span>Web Resto User</span>
+            <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.6 }} />
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
@@ -128,20 +151,6 @@ export default function AdminLayout() {
               <Search size={18} className="search-icon" />
               <input type="text" placeholder="Cari pesanan, meja, atau menu..." />
             </div>
-          </div>
-
-          <div className="navbar-actions">
-            <Link to="/menu" target="_blank" className="btn-customer-redirect">
-              <Store size={18} />
-              <span className="btn-redirect-text">Order Customer</span>
-              <ExternalLink size={14} />
-            </Link>
-
-            <Link to="/web" target="_blank" className="btn-customer-redirect btn-web-resto" style={{ background: '#FAF6F0', color: '#7C4012', border: '1px solid #E8DFD5' }}>
-              <Home size={18} />
-              <span className="btn-redirect-text">Web Resto</span>
-              <ExternalLink size={14} />
-            </Link>
           </div>
         </header>
 
