@@ -30,7 +30,30 @@ export default function WebLandingPage() {
   const [cart, setCart] = useState([]);
 
   const [customerName, setCustomerName] = useState('');
-  const [tableNumber, setTableNumber] = useState('Online / Delivery');
+  const [tableNumber, setTableNumber] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const rawParam = params.get('table') || params.get('table_number') || params.get('meja') || params.get('token');
+      if (rawParam) {
+        let resolved = rawParam;
+        if (rawParam.startsWith('tbl-')) {
+          const cachedTables = JSON.parse(localStorage.getItem('cached_tables') || '[]');
+          const found = cachedTables.find((t) => t.qr_code_token === rawParam);
+          if (found) resolved = found.table_number;
+        } else if (/^\d+$/.test(rawParam)) {
+          resolved = `Meja ${parseInt(rawParam, 10)}`;
+        } else if (!rawParam.toLowerCase().startsWith('meja')) {
+          resolved = `Meja ${rawParam}`;
+        }
+        sessionStorage.setItem('current_table_number', resolved);
+        localStorage.setItem('current_table_number', resolved);
+        return resolved;
+      }
+      return sessionStorage.getItem('current_table_number') || localStorage.getItem('current_table_number') || 'Online / Delivery';
+    } catch {
+      return 'Online / Delivery';
+    }
+  });
   const [variantProduct, setVariantProduct] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
@@ -38,6 +61,23 @@ export default function WebLandingPage() {
 
   useEffect(() => {
     document.title = 'Website Utama - Coffee Shop Resto';
+    const params = new URLSearchParams(window.location.search);
+    const rawParam = params.get('table') || params.get('table_number') || params.get('meja') || params.get('token');
+    if (rawParam) {
+      let resolved = rawParam;
+      if (rawParam.startsWith('tbl-')) {
+        const cachedTables = JSON.parse(localStorage.getItem('cached_tables') || '[]');
+        const found = cachedTables.find((t) => t.qr_code_token === rawParam);
+        if (found) resolved = found.table_number;
+      } else if (/^\d+$/.test(rawParam)) {
+        resolved = `Meja ${parseInt(rawParam, 10)}`;
+      } else if (!rawParam.toLowerCase().startsWith('meja')) {
+        resolved = `Meja ${rawParam}`;
+      }
+      setTableNumber(resolved);
+      sessionStorage.setItem('current_table_number', resolved);
+      localStorage.setItem('current_table_number', resolved);
+    }
     const fetchMenuData = async () => {
       try {
         const [resProd, resCat] = await Promise.all([

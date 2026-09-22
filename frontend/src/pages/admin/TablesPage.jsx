@@ -98,7 +98,7 @@ export default function TablesPage() {
         <div className="tables-cards-grid">
           {tables.length > 0 ? (
             tables.map((tbl) => {
-              const scanUrl = `${window.location.origin}/scan?table=${tbl.qr_code_token}`;
+              const scanUrl = `${window.location.origin}/scan?table=${encodeURIComponent(tbl.table_number)}&token=${tbl.qr_code_token}`;
               return (
                 <div key={tbl.id} className="table-qr-card">
                   <div className="table-card-header">

@@ -64,7 +64,12 @@ export default function CheckoutPage() {
   };
 
   const [tableNumber, setTableNumber] = useState(() => {
-    return localStorage.getItem('checkout_table') || '';
+    return (
+      localStorage.getItem('checkout_table') ||
+      sessionStorage.getItem('current_table_number') ||
+      localStorage.getItem('current_table_number') ||
+      ''
+    );
   });
 
   const [tables, setTables] = useState(() => {
