@@ -128,11 +128,7 @@ export default function CheckoutPage() {
     }
 
     if (!tableNumber) {
-      setValidationModal({
-        isOpen: true,
-        title: 'Nomor Meja Belum Dipilih',
-        message: 'Silakan pilih Nomor Meja tempat Anda duduk terlebih dahulu.'
-      });
+      setIsTableModalOpen(true);
       return;
     }
 

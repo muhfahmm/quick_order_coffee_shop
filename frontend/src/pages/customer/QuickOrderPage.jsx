@@ -150,10 +150,16 @@ export default function QuickOrderPage() {
   };
 
   useEffect(() => {
+    if (tableNumber) {
+      tableService.occupyByNumber(tableNumber).catch(err => console.error('Error occupying table:', err));
+    }
+  }, [tableNumber]);
+
+  useEffect(() => {
     document.title = 'Quick Order Customer - Resto & Cafe';
     const params = new URLSearchParams(window.location.search);
     const rawParam = params.get('table') || params.get('table_number') || params.get('meja');
-    if (rawParam && tables.length > 0) {
+    if (rawParam) {
       let resolved = rawParam;
       if (/^\d+$/.test(rawParam)) {
         resolved = `Meja ${parseInt(rawParam, 10)}`;
@@ -162,13 +168,7 @@ export default function QuickOrderPage() {
       }
       setTableNumber(resolved);
       sessionStorage.setItem('current_table_number', resolved);
-
-      // Auto update table status to occupied in database
-      const cleanNum = rawParam.replace(/^meja\s*/i, '');
-      const found = tables.find(t => t.table_number === resolved || t.table_number === rawParam || t.table_number === cleanNum || t.table_number === `Meja ${cleanNum}`);
-      if (found && found.status !== 'occupied') {
-        tableService.updateStatus(found.id, 'occupied').catch(() => {});
-      }
+      tableService.occupyByNumber(resolved).catch(err => console.error(err));
     }
   }, [tables]);
 
@@ -483,64 +483,79 @@ export default function QuickOrderPage() {
         </div>
       </main>
 
-      {/* Floating Cart Bar & Cart Detail Drawer */}
+      {/* Unified Bottom Sheet (Floating Cart Bar & Drawer) */}
       {cart.length > 0 && (
         <>
-          {/* Expanded Cart Overlay/Drawer */}
-          {isCartExpanded && (
+          {/* Backdrop Overlay */}
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(45, 26, 16, 0.45)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 999,
+              opacity: isCartExpanded ? 1 : 0,
+              pointerEvents: isCartExpanded ? 'auto' : 'none',
+              transition: 'opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
+            }}
+            onClick={() => {
+              setDragY(0);
+              setIsCartExpanded(false);
+            }}
+          />
+
+          {/* Unified Bottom Sheet Container */}
+          <div
+            onTouchStart={(e) => startDrag(e.touches[0].clientY)}
+            onTouchMove={(e) => moveDrag(e.touches[0].clientY, isCartExpanded)}
+            onTouchEnd={() => endDrag(isCartExpanded)}
+            onMouseDown={(e) => startDrag(e.clientY)}
+            onMouseMove={(e) => isDragging && moveDrag(e.clientY, isCartExpanded)}
+            onMouseUp={() => endDrag(isCartExpanded)}
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              background: '#FFFFFF',
+              borderTopLeftRadius: '24px',
+              borderTopRightRadius: '24px',
+              boxShadow: isCartExpanded ? '0 -10px 36px rgba(0,0,0,0.25)' : '0 -6px 20px rgba(0,0,0,0.12)',
+              maxWidth: '600px',
+              width: '100%',
+              margin: '0 auto',
+              padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              touchAction: 'none',
+              transform: isCartExpanded
+                ? `translateY(${dragY > 0 ? dragY : 0}px)`
+                : `translateY(${dragY < 0 ? dragY : 0}px)`,
+              transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+              maxHeight: isCartExpanded ? '78vh' : 'auto',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Drag Handle Indicator */}
             <div
               style={{
-                position: 'fixed',
-                inset: 0,
-                backgroundColor: 'rgba(45, 26, 16, 0.4)',
-                backdropFilter: 'blur(3px)',
-                zIndex: 90,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                transition: 'background-color 0.2s ease'
+                width: '42px',
+                height: '5px',
+                background: '#D9C8B4',
+                borderRadius: '4px',
+                margin: '0 auto 10px auto',
+                cursor: 'grab',
+                flexShrink: 0
               }}
-              onClick={() => setIsCartExpanded(false)}
-            >
-              <div
-                onClick={(e) => e.stopPropagation()}
-                onTouchStart={(e) => startDrag(e.touches[0].clientY)}
-                onTouchMove={(e) => moveDrag(e.touches[0].clientY, true)}
-                onTouchEnd={() => endDrag(true)}
-                onMouseDown={(e) => startDrag(e.clientY)}
-                onMouseMove={(e) => isDragging && moveDrag(e.clientY, true)}
-                onMouseUp={() => endDrag(true)}
-                style={{
-                  background: '#FFFFFF',
-                  borderTopLeftRadius: '24px',
-                  borderTopRightRadius: '24px',
-                  padding: '12px 20px 20px 20px',
-                  maxWidth: '600px',
-                  width: '100%',
-                  margin: '0 auto',
-                  boxShadow: '0 -10px 30px rgba(0,0,0,0.15)',
-                  maxHeight: '70vh',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  touchAction: 'none',
-                  transform: dragY > 0 ? `translateY(${dragY}px)` : 'translateY(0)',
-                  transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                }}
-              >
-                {/* Drag Handle Indicator */}
-                <div 
-                  style={{ 
-                    width: '44px', 
-                    height: '5px', 
-                    background: '#D9C8B4', 
-                    borderRadius: '4px', 
-                    margin: '0 auto 12px auto',
-                    cursor: 'grab'
-                  }} 
-                />
+              onClick={() => setIsCartExpanded(!isCartExpanded)}
+            />
 
+            {/* EXPANDED CONTENT VIEW */}
+            {isCartExpanded ? (
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
                 {/* Header Drawer */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #E8DFD5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid #E8DFD5', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <ShoppingBag size={20} style={{ color: '#7C4012' }} />
                     <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#2D1A10', margin: 0 }}>
@@ -549,7 +564,10 @@ export default function QuickOrderPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setIsCartExpanded(false)}
+                    onClick={() => {
+                      setDragY(0);
+                      setIsCartExpanded(false);
+                    }}
                     style={{ background: '#F4ECE1', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', color: '#7C4012', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <X size={18} />
@@ -564,7 +582,7 @@ export default function QuickOrderPage() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justify: 'space-between',
+                        justifyContent: 'space-between',
                         background: '#FAF6F0',
                         padding: '12px 14px',
                         borderRadius: '14px',
@@ -627,109 +645,112 @@ export default function QuickOrderPage() {
                   ))}
                 </div>
 
-                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #E8DFD5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#7A695C' }}>Total Pembayaran</span>
-                  <span style={{ fontSize: '18px', fontWeight: 800, color: '#7C4012' }}>
+                {/* Drawer Footer & Checkout Button */}
+                <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #E8DFD5', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexShrink: 0 }}>
+                  <div>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#7A695C', display: 'block' }}>Total Pembayaran</span>
+                    <span style={{ fontSize: '18px', fontWeight: 800, color: '#7C4012' }}>
+                      Rp {totalAmount.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (cart.length === 0) return;
+                      if (!tableNumber) {
+                        setIsCartExpanded(false);
+                        setIsTableModalOpen(true);
+                        return;
+                      }
+                      localStorage.setItem('checkout_cart', JSON.stringify(cart));
+                      localStorage.setItem('checkout_table', tableNumber || '');
+                      navigate('/checkout');
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #7C4012, #D97706)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      padding: '12px 24px',
+                      borderRadius: '14px',
+                      fontWeight: 800,
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 14px rgba(124, 64, 18, 0.3)'
+                    }}
+                  >
+                    Checkout <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* COMPACT VIEW */
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div
+                  onClick={() => setIsCartExpanded(true)}
+                  style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <strong style={{ fontSize: '14px', color: '#2D1A10', fontWeight: 800 }}>
+                      {cart.reduce((a, b) => a + b.quantity, 0)} Item Keranjang
+                    </strong>
+                    <button
+                      type="button"
+                      style={{
+                        background: '#F4ECE1',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '24px',
+                        height: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#7C4012',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <ChevronUp size={16} />
+                    </button>
+                  </div>
+                  <span style={{ fontSize: '14px', color: '#7C4012', fontWeight: 800 }}>
                     Rp {totalAmount.toLocaleString('id-ID')}
                   </span>
                 </div>
-              </div>
-            </div>
-          )}
 
-          {/* Sticky Bottom Bar */}
-          <div 
-            onTouchStart={(e) => startDrag(e.touches[0].clientY)}
-            onTouchMove={(e) => moveDrag(e.touches[0].clientY, false)}
-            onTouchEnd={() => endDrag(false)}
-            onMouseDown={(e) => startDrag(e.clientY)}
-            onMouseMove={(e) => isDragging && moveDrag(e.clientY, false)}
-            onMouseUp={() => endDrag(false)}
-            style={{ 
-              position: 'fixed', 
-              bottom: 0, 
-              left: 0, 
-              right: 0, 
-              background: '#FFFFFF', 
-              borderTop: '1.5px solid #E8DFD5', 
-              padding: '10px 20px 14px 20px', 
-              boxShadow: '0 -8px 24px rgba(0,0,0,0.1)', 
-              zIndex: 100, 
-              touchAction: 'none',
-              transform: dragY < 0 ? `translateY(${dragY}px)` : 'translateY(0)',
-              transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)'
-            }}
-          >
-            {/* Drag Pill for Bottom Bar */}
-            <div 
-              style={{ 
-                width: '40px', 
-                height: '4px', 
-                background: '#D9C8B4', 
-                borderRadius: '4px', 
-                margin: '0 auto 8px auto',
-                cursor: 'grab'
-              }} 
-              onClick={() => setIsCartExpanded(!isCartExpanded)}
-            />
-            <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-              <div
-                onClick={() => setIsCartExpanded(!isCartExpanded)}
-                style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <strong style={{ fontSize: '14px', color: '#2D1A10', fontWeight: 800 }}>
-                    {cart.reduce((a, b) => a + b.quantity, 0)} Item Keranjang
-                  </strong>
-                  <button
-                    type="button"
-                    style={{
-                      background: '#F4ECE1',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '24px',
-                      height: '24px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#7C4012',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {isCartExpanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-                  </button>
-                </div>
-                <span style={{ fontSize: '14px', color: '#7C4012', fontWeight: 800 }}>
-                  Rp {totalAmount.toLocaleString('id-ID')}
-                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (cart.length === 0) return;
+                    if (!tableNumber) {
+                      setIsTableModalOpen(true);
+                      return;
+                    }
+                    localStorage.setItem('checkout_cart', JSON.stringify(cart));
+                    localStorage.setItem('checkout_table', tableNumber || '');
+                    navigate('/checkout');
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #7C4012, #D97706)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '12px',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(124, 64, 18, 0.25)'
+                  }}
+                >
+                  Checkout <ArrowRight size={16} />
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (cart.length === 0) return;
-                  localStorage.setItem('checkout_cart', JSON.stringify(cart));
-                  localStorage.setItem('checkout_table', tableNumber || '');
-                  navigate('/checkout');
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #7C4012, #D97706)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '12px',
-                  fontWeight: 800,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 12px rgba(124, 64, 18, 0.25)'
-                }}
-              >
-                Checkout <ArrowRight size={16} />
-              </button>
-            </div>
+            )}
           </div>
         </>
       )}
@@ -835,16 +856,15 @@ export default function QuickOrderPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
               {tables.map((t) => {
-                const isSelected = tableNumber === t.table_number || tableNumber === `Meja ${t.table_number}` || t.table_number === `Meja ${tableNumber}`;
+                const isSelected = tableNumber === t.table_number;
                 return (
                   <button
                     key={t.id}
                     type="button"
                     onClick={() => {
                       setTableNumber(t.table_number);
-                      sessionStorage.setItem('current_table_number', t.table_number);
+                      tableService.occupyByNumber(t.table_number).catch(err => console.error(err));
                       setIsTableModalOpen(false);
-                      tableService.updateStatus(t.id, 'occupied').catch(() => {});
                     }}
                     style={{ padding: '10px 6px', borderRadius: '10px', border: isSelected ? '2px solid #7C4012' : '1px solid #E8DFD5', background: isSelected ? '#7C4012' : '#FAF6F0', color: isSelected ? '#FFFFFF' : '#2D1A10', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
                   >

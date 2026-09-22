@@ -52,6 +52,34 @@ class TableController extends Controller
         ]);
     }
 
+    public function occupyByNumber(Request $request)
+    {
+        $request->validate([
+            'table_number' => 'required|string'
+        ]);
+
+        $tableNum = $request->table_number;
+        $table = Table::where('table_number', $tableNum)->first();
+
+        if (!$table && preg_match('/^\d+$/', $tableNum)) {
+            $table = Table::where('table_number', "Meja {$tableNum}")->first();
+        }
+
+        if ($table) {
+            $table->update(['status' => 'occupied']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Status meja berhasil diubah ke terisi',
+                'data' => $table
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Meja tidak ditemukan'
+        ], 404);
+    }
+
     public function destroy($id)
     {
         $table = Table::findOrFail($id);

@@ -13,6 +13,7 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/tables', [TableController::class, 'index']);
+Route::post('/tables/occupy-by-number', [TableController::class, 'occupyByNumber']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::post('/orders', [OrderController::class, 'store']);
 

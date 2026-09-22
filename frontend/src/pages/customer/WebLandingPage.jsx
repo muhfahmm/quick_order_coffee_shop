@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X, Flame, ChefHat, Tag, Gift, Bell, Search, Clock, Wifi, Utensils, Snowflake, Zap, AlertTriangle, BookOpen, Citrus, ShoppingCart, MousePointer, ShieldCheck, ArrowRight, UserCheck, Star, Phone, Menu } from 'lucide-react';
-import { productService, categoryService, orderService } from '../../services/api';
+import { productService, categoryService, orderService, tableService } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import FastImage from '../../components/common/FastImage';
 import { preloadProductImages } from '../../utils/imagePreloader';
@@ -61,6 +61,12 @@ export default function WebLandingPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (tableNumber && tableNumber !== 'Online / Delivery') {
+      tableService.occupyByNumber(tableNumber).catch(err => console.error('Error occupying table:', err));
+    }
+  }, [tableNumber]);
+
+  useEffect(() => {
     document.title = 'Website Utama - Coffee Shop Resto';
     const params = new URLSearchParams(window.location.search);
     const rawParam = params.get('table') || params.get('table_number') || params.get('meja') || params.get('token');
@@ -78,6 +84,7 @@ export default function WebLandingPage() {
       setTableNumber(resolved);
       sessionStorage.setItem('current_table_number', resolved);
       localStorage.setItem('current_table_number', resolved);
+      tableService.occupyByNumber(resolved).catch(err => console.error(err));
     }
     const fetchMenuData = async () => {
       try {

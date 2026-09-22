@@ -26,6 +26,8 @@ export default function TablesPage() {
 
   useEffect(() => {
     fetchTables();
+    const interval = setInterval(fetchTables, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleAddTable = async (e) => {

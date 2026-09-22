@@ -94,6 +94,7 @@ export const tableService = {
   getAll: () => api.get('/tables'),
   create: (data) => api.post('/tables', data),
   updateStatus: (id, status) => api.put(`/tables/${id}/status`, { status }),
+  occupyByNumber: (table_number) => api.post('/tables/occupy-by-number', { table_number }),
   delete: (id) => api.delete(`/tables/${id}`)
 };
 

@@ -44,10 +44,17 @@ export default function MenuPage() {
   const [orderSuccess, setOrderSuccess] = useState(null);
 
   useEffect(() => {
+    if (tableNumber) {
+      tableService.occupyByNumber(tableNumber).catch(err => console.error('Error occupying table:', err));
+    }
+  }, [tableNumber]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tbl = params.get('table_number') || params.get('table');
     if (tbl) {
       setTableNumber(tbl);
+      tableService.occupyByNumber(tbl).catch(err => console.error(err));
     }
   }, []);
 

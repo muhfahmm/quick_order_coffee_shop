@@ -30,28 +30,30 @@ class OrderController extends Controller
 
         $orderCode = 'ORD-' . strtoupper(Str::random(6));
 
-        $tableNum = $request->table_number ?? 'Meja General';
+        $tableNumber = $request->table_number ?? 'Meja General';
+        $tableId = $request->table_id ?? null;
+
+        $table = null;
+        if ($tableId) {
+            $table = \App\Models\Table::find($tableId);
+        } elseif ($tableNumber && $tableNumber !== 'Meja General' && $tableNumber !== 'Online / Delivery' && $tableNumber !== 'Online Order') {
+            $table = \App\Models\Table::where('table_number', $tableNumber)->first();
+        }
+
+        if ($table) {
+            $tableId = $table->id;
+            $tableNumber = $table->table_number;
+            $table->update(['status' => 'occupied']);
+        }
 
         $order = Order::create([
             'order_code' => $orderCode,
-            'table_id' => $request->table_id ?? null,
-            'table_number' => $tableNum,
+            'table_id' => $tableId,
+            'table_number' => $tableNumber,
             'customer_name' => $request->customer_name,
             'total_amount' => 0,
             'status' => 'pending'
         ]);
-
-        // Auto update table status to occupied when order is placed
-        if ($request->table_id) {
-            \App\Models\Table::where('id', $request->table_id)->update(['status' => 'occupied']);
-        } elseif ($tableNum && $tableNum !== 'Meja General') {
-            $rawNumber = trim($tableNum);
-            $cleanNumber = preg_replace('/^meja\s*/i', '', $rawNumber);
-            \App\Models\Table::where('table_number', $rawNumber)
-                ->orWhere('table_number', $cleanNumber)
-                ->orWhere('table_number', "Meja {$cleanNumber}")
-                ->update(['status' => 'occupied']);
-        }
 
         $total = 0;
         foreach ($request->items as $item) {
@@ -88,6 +90,33 @@ class OrderController extends Controller
 
         $order = Order::findOrFail($id);
         $order->update(['status' => $request->status]);
+
+        // Auto update status meja terkait
+        $table = null;
+        if ($order->table_id) {
+            $table = \App\Models\Table::find($order->table_id);
+        } elseif ($order->table_number) {
+            $table = \App\Models\Table::where('table_number', $order->table_number)->first();
+        }
+
+        if ($table) {
+            if (in_array($request->status, ['completed', 'cancelled'])) {
+                // Periksa apakah masih ada pesanan aktif lain (pending / processing) di meja ini
+                $hasActiveOrders = Order::where(function ($q) use ($table) {
+                        $q->where('table_id', $table->id)
+                          ->orWhere('table_number', $table->table_number);
+                    })
+                    ->where('id', '!=', $order->id)
+                    ->whereIn('status', ['pending', 'processing'])
+                    ->exists();
+
+                if (!$hasActiveOrders) {
+                    $table->update(['status' => 'available']);
+                }
+            } elseif (in_array($request->status, ['pending', 'processing'])) {
+                $table->update(['status' => 'occupied']);
+            }
+        }
 
         return response()->json([
             'success' => true,
