@@ -710,6 +710,10 @@ export default function MenuPage() {
                   {prod.name}
                 </h3>
 
+                <p className="product-card-desc" style={{ fontSize: '11px', color: '#7A695C', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3 }}>
+                  {prod.description || 'Sajian rasa kopi nikmat dan berkualitas tinggi.'}
+                </p>
+
                 <span
                   className="card-price"
                   style={{

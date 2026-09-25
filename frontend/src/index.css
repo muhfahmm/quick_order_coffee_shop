@@ -1436,3 +1436,11 @@ a.btn-customer-redirect:active {
     padding: 16px !important;
   }
 }
+
+/* Hide product card description on mobile screens */
+@media (max-width: 768px) {
+  .product-card-desc {
+    display: none !important;
+  }
+}
+

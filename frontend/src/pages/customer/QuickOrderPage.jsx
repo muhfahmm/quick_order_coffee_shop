@@ -470,6 +470,9 @@ export default function QuickOrderPage() {
               <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#2D1A10', margin: '0 0 2px 0' }}>
                 {prod.name}
               </h3>
+              <p className="product-card-desc" style={{ fontSize: '12px', color: '#7A695C', margin: '2px 0 8px 0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+                {prod.description || 'Sajian rasa kopi nikmat dan berkualitas tinggi.'}
+              </p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '6px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
                   Rp {Number(prod.price).toLocaleString('id-ID')}

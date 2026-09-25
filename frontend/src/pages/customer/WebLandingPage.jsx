@@ -350,17 +350,6 @@ export default function WebLandingPage() {
                   <Zap size={16} /> Quick Order Meja
                 </Link>
               </div>
-
-              {/* Drawer Footer Admin Link */}
-              <div style={{ paddingTop: '16px', borderTop: '1px solid #E8DFD5' }}>
-                <Link
-                  to="/auth/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  style={{ textDecoration: 'none', color: '#FFFFFF', background: 'linear-gradient(135deg, #7C4012, #D97706)', padding: '14px', borderRadius: '14px', fontWeight: 800, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', boxSizing: 'border-box' }}
-                >
-                  Portal Admin
-                </Link>
-              </div>
             </div>
           </div>
         )}
@@ -570,7 +559,7 @@ export default function WebLandingPage() {
               <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#2D1A10', margin: '0 0 4px 0', lineHeight: 1.3 }}>
                 {prod.name}
               </h3>
-              <p style={{ fontSize: '12px', color: '#7A695C', margin: '0 0 10px 0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
+              <p className="product-card-desc" style={{ fontSize: '12px', color: '#7A695C', margin: '0 0 10px 0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
                 {prod.description || 'Sajian rasa kopi nikmat dan berkualitas tinggi.'}
               </p>
 
