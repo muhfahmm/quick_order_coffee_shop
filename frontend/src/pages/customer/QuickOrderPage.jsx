@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, ShoppingBag, Plus, Check, Send, MapPin, X, Snowflake, AlertTriangle, Search, ChevronUp, ChevronDown, Trash2, ArrowRight, Home } from 'lucide-react';
+import { Coffee, ShoppingBag, Plus, Minus, Check, Send, MapPin, X, Snowflake, AlertTriangle, Search, ChevronUp, ChevronDown, Trash2, ArrowRight, Home } from 'lucide-react';
 import { productService, categoryService, orderService, tableService } from '../../services/api';
 import FastImage from '../../components/common/FastImage';
 import { preloadProductImages } from '../../utils/imagePreloader';
@@ -461,13 +461,85 @@ export default function QuickOrderPage() {
               <p className="product-card-desc" style={{ fontSize: '12px', color: '#7A695C', margin: '2px 0 8px 0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>
                 {prod.description || 'Sajian rasa kopi nikmat dan berkualitas tinggi.'}
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '6px' }} onClick={(e) => e.stopPropagation()}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#7C4012' }}>
                   Rp {Number(prod.price).toLocaleString('id-ID')}
                 </span>
-                <button type="button" style={{ background: '#7C4012', color: '#FFF', border: 'none', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                  <Plus size={15} />
-                </button>
+                {(() => {
+                  const cartItems = cart.filter((it) => it.product_id === prod.id);
+                  const totalQty = cartItems.reduce((acc, it) => acc + it.quantity, 0);
+
+                  if (totalQty === 0) {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleProductClick(prod)}
+                        style={{
+                          background: '#7C4012',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '6px 14px',
+                          borderRadius: '20px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(124, 64, 18, 0.2)',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        Tambah
+                      </button>
+                    );
+                  }
+
+                  const firstVariant = cartItems[0]?.variant_type;
+
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => updateCartQuantity(prod.id, firstVariant, -1)}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          border: '1.5px solid #16A34A',
+                          background: '#FFFFFF',
+                          color: '#16A34A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          padding: 0
+                        }}
+                      >
+                        <Minus size={14} strokeWidth={2.5} />
+                      </button>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#16A34A', minWidth: '16px', textAlign: 'center' }}>
+                        {totalQty}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleProductClick(prod)}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          border: '1.5px solid #16A34A',
+                          background: '#FFFFFF',
+                          color: '#16A34A',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          padding: 0
+                        }}
+                      >
+                        <Plus size={14} strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ))}
