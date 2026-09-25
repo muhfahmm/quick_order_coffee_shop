@@ -4,6 +4,7 @@ import { Coffee, ShoppingBag, Plus, Check, Send, MapPin, X, Snowflake, AlertTria
 import { productService, categoryService, orderService, tableService } from '../../services/api';
 import FastImage from '../../components/common/FastImage';
 import { preloadProductImages } from '../../utils/imagePreloader';
+import logoImg from '../../assets/image.png';
 
 export default function QuickOrderPage() {
   const navigate = useNavigate();
@@ -130,20 +131,17 @@ export default function QuickOrderPage() {
     if (isExpanded) {
       if (delta > 0) setDragY(delta);
     } else {
-      if (delta < 0) setDragY(delta);
+      if (delta < -20) {
+        setIsCartExpanded(true);
+        dragStartYRef.current = 0;
+      }
     }
   };
 
   const endDrag = (isExpanded) => {
     setIsDragging(false);
-    if (isExpanded) {
-      if (dragY > 60) {
-        setIsCartExpanded(false);
-      }
-    } else {
-      if (dragY < -40) {
-        setIsCartExpanded(true);
-      }
+    if (isExpanded && dragY > 60) {
+      setIsCartExpanded(false);
     }
     setDragY(0);
     dragStartYRef.current = 0;
@@ -306,7 +304,7 @@ export default function QuickOrderPage() {
     .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div style={{ background: '#FAF6F0', minHeight: '100vh', paddingBottom: '120px' }}>
+    <div style={{ background: '#FAF6F0', minHeight: '100vh', paddingBottom: '140px' }}>
       {/* Header Quick Order */}
       <header
         style={{
@@ -320,17 +318,7 @@ export default function QuickOrderPage() {
       >
         <div className="quickorder-container" style={{ margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-            <div style={{ width: '36px', height: '36px', minWidth: '36px', background: 'linear-gradient(135deg, #7C4012, #D97706)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-              <Coffee size={18} />
-            </div>
-            <div style={{ overflow: 'hidden' }}>
-              <h1 style={{ fontSize: '15px', fontWeight: 800, color: '#2D1A10', margin: 0, whiteSpace: 'nowrap' }}>
-                Quick Order
-              </h1>
-              <span style={{ fontSize: '11px', color: '#7A695C', fontWeight: 600, display: 'block', whiteSpace: 'nowrap' }}>
-                Pesan Cepat Resto
-              </span>
-            </div>
+            <img src={logoImg} alt="myCoffee Logo" style={{ height: '32px', objectFit: 'contain' }} />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
@@ -528,13 +516,11 @@ export default function QuickOrderPage() {
               maxWidth: '600px',
               width: '100%',
               margin: '0 auto',
-              padding: '12px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 20px',
+              padding: '12px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px',
               display: 'flex',
               flexDirection: 'column',
               touchAction: 'none',
-              transform: isCartExpanded
-                ? `translateY(${dragY > 0 ? dragY : 0}px)`
-                : `translateY(${dragY < 0 ? dragY : 0}px)`,
+              transform: isCartExpanded && dragY > 0 ? `translateY(${dragY}px)` : 'none',
               transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
               maxHeight: isCartExpanded ? '78vh' : 'auto',
               overflow: 'hidden'

@@ -17,6 +17,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import logoImg from '../assets/image.png';
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -62,13 +63,7 @@ export default function AdminLayout() {
       <aside className={`admin-sidebar ${isSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="brand-badge-small">
-              <Coffee size={22} />
-            </div>
-            <div className="brand-info">
-              <h2>CoffeeShop</h2>
-              <span>Quick Order Admin</span>
-            </div>
+            <img src={logoImg} alt="myCoffee Logo" style={{ height: '36px', objectFit: 'contain', background: '#FFFFFF', padding: '4px 8px', borderRadius: '8px' }} />
           </div>
           <button
             type="button"

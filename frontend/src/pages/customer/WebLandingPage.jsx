@@ -3,7 +3,7 @@ import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X, Flame, Che
 import { productService, categoryService, orderService, tableService } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import FastImage from '../../components/common/FastImage';
-import { preloadProductImages } from '../../utils/imagePreloader';
+import logoImg from '../../assets/image.png';
 
 export default function WebLandingPage() {
   const [categories, setCategories] = useState(() => {
@@ -242,29 +242,15 @@ export default function WebLandingPage() {
             </button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div
+              <img
+                src={logoImg}
+                alt="myCoffee Logo"
                 style={{
-                  width: '40px',
-                  height: '40px',
-                  background: 'linear-gradient(135deg, #7C4012, #D97706)',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#fff',
-                  boxShadow: '0 4px 12px rgba(124, 64, 18, 0.2)'
+                  height: '38px',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.08))'
                 }}
-              >
-                <Coffee size={22} />
-              </div>
-              <div>
-                <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#2D1A10', margin: 0, letterSpacing: '-0.5px' }}>
-                  CoffeeShop Resto
-                </h1>
-                <span style={{ fontSize: '11px', color: '#7A695C', fontWeight: 600 }}>
-                  Specialty Coffee & Gourmet
-                </span>
-              </div>
+              />
             </div>
           </div>
 
@@ -310,13 +296,7 @@ export default function WebLandingPage() {
               {/* Drawer Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #E8DFD5' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg, #7C4012, #D97706)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                    <Coffee size={20} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#2D1A10', margin: 0 }}>CoffeeShop</h3>
-                    <span style={{ fontSize: '10px', color: '#7A695C', fontWeight: 600 }}>Menu Navigasi</span>
-                  </div>
+                  <img src={logoImg} alt="myCoffee Logo" style={{ height: '32px', objectFit: 'contain' }} />
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -377,7 +357,7 @@ export default function WebLandingPage() {
           </h2>
 
           <p style={{ fontSize: 'clamp(14px, 2.5vw, 16px)', opacity: 0.9, lineHeight: 1.6, margin: '0 0 28px 0', fontWeight: 400 }}>
-            Pesan menu favorit Anda langsung secara Online atau Scan QR Code Meja saat Dine-In tanpa harus mengantre.
+            Pesan menu favorit Anda langsung secara Online atau pilih Nomor Meja saat Dine-In tanpa harus mengantre.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -428,7 +408,7 @@ export default function WebLandingPage() {
           {[
             { icon: <Coffee size={26} style={{ color: '#7C4012' }} />, title: 'Biji Kopi Pilihan', desc: '100% Single Origin Robusta & Arabica terbaik dipanggang secara presisi.' },
             { icon: <ChefHat size={26} style={{ color: '#7C4012' }} />, title: 'Racikan Master Barista', desc: 'Dibuat oleh tim barista berpengalaman dengan standar kualitas tertinggi.' },
-            { icon: <Zap size={26} style={{ color: '#7C4012' }} />, title: 'Quick QR Dine-In', desc: 'Pesan dari meja Anda via Scan QR tanpa antre, diantar hangat dalam 10 menit.' }
+            { icon: <Zap size={26} style={{ color: '#7C4012' }} />, title: 'Quick Order Meja', desc: 'Pesan langsung dari meja Anda tanpa antre, diantar hangat dalam 10 menit.' }
           ].map((item, idx) => (
             <div
               key={idx}

@@ -15,7 +15,6 @@ export default function DashboardPage() {
     todayRevenue: 'Rp 0',
     totalOrders: '0 Pesanan',
     occupiedTables: '0 / 0 Meja',
-    avgTime: '12 Mins'
   });
 
   const [recentOrders, setRecentOrders] = useState([]);
@@ -49,7 +48,6 @@ export default function DashboardPage() {
         todayRevenue: `Rp ${totalRev.toLocaleString('id-ID')}`,
         totalOrders: `${ordersData.length} Pesanan`,
         occupiedTables: `${occupiedCount} / ${tablesData.length} Meja`,
-        avgTime: '12 Mins'
       });
     } catch (err) {
       console.error('Gagal mengambil data dashboard:', err);
@@ -103,16 +101,6 @@ export default function DashboardPage() {
           </div>
           <div className="stat-body">
             <h3 className="stat-value">{stats.occupiedTables}</h3>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-header">
-            <span className="stat-title">Waktu Rata-rata Penyajian</span>
-            <div className="stat-icon-wrapper"><Clock size={20} /></div>
-          </div>
-          <div className="stat-body">
-            <h3 className="stat-value">{stats.avgTime}</h3>
           </div>
         </div>
       </div>

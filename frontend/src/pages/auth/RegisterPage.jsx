@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Coffee, User, Lock, ShieldCheck, UserPlus, ArrowLeft } from 'lucide-react';
+import { Coffee, User, Lock, ShieldCheck, UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -11,6 +11,8 @@ export default function RegisterPage() {
     confirmPassword: '',
     role: 'admin'
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
@@ -101,31 +103,71 @@ export default function RegisterPage() {
           <div className="form-row">
             <div className="form-group">
               <label>Kata Sandi</label>
-              <div className="input-wrapper">
+              <div className="input-wrapper" style={{ position: 'relative' }}>
                 <Lock className="input-icon" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
+                  style={{ paddingRight: '40px' }}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#7A695C',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px'
+                  }}
+                  tabIndex="-1"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
             <div className="form-group">
               <label>Konfirmasi Sandi</label>
-              <div className="input-wrapper">
+              <div className="input-wrapper" style={{ position: 'relative' }}>
                 <Lock className="input-icon" size={18} />
                 <input
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   name="confirmPassword"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  style={{ paddingRight: '40px' }}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#7A695C',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px'
+                  }}
+                  tabIndex="-1"
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
           </div>

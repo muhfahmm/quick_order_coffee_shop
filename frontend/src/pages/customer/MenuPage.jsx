@@ -3,6 +3,7 @@ import { Coffee, ShoppingBag, Plus, Check, Sparkles, Send, MapPin, X, Flame, Che
 import { productService, categoryService, orderService, tableService } from '../../services/api';
 import FastImage from '../../components/common/FastImage';
 import { preloadProductImages } from '../../utils/imagePreloader';
+import logoImg from '../../assets/image.png';
 
 export default function MenuPage() {
   const [categories, setCategories] = useState(() => {
@@ -217,42 +218,7 @@ export default function MenuPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                background: 'linear-gradient(135deg, #7C4012, #D97706)',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff'
-              }}
-            >
-              <Coffee size={24} />
-            </div>
-
-            <div>
-              <h1
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 800,
-                  color: '#2D1A10',
-                  margin: 0
-                }}
-              >
-                CoffeeShop Resto
-              </h1>
-              <span
-                style={{
-                  fontSize: '12px',
-                  color: '#7A695C',
-                  fontWeight: 600
-                }}
-              >
-                Pemesanan Meja QR
-              </span>
-            </div>
+            <img src={logoImg} alt="myCoffee Logo" style={{ height: '36px', objectFit: 'contain' }} />
           </div>
 
           <button

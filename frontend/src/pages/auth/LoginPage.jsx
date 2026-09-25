@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Coffee, User, Lock, LogIn, ArrowRight } from 'lucide-react';
+import { Coffee, User, Lock, LogIn, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import logoImg from '../../assets/image.png';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -29,11 +31,8 @@ export default function LoginPage() {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <div className="brand-badge">
-            <Coffee className="brand-icon" />
-          </div>
-          <h1 className="auth-title">Coffee Quick Order</h1>
-          <p className="auth-subtitle">Masuk ke Portal Admin Resto (MySQL Live API)</p>
+          <img src={logoImg} alt="myCoffee Logo" style={{ height: '48px', objectFit: 'contain', marginBottom: '12px' }} />
+          <p className="auth-subtitle">Masuk ke Portal Admin Resto</p>
         </div>
 
         {error && <div className="error-banner">{error}</div>}
@@ -55,15 +54,35 @@ export default function LoginPage() {
 
           <div className="form-group">
             <label>Kata Sandi</label>
-            <div className="input-wrapper">
+            <div className="input-wrapper" style={{ position: 'relative' }}>
               <Lock className="input-icon" size={18} />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                style={{ paddingRight: '40px' }}
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#7A695C',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4px'
+                }}
+                tabIndex="-1"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
